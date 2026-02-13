@@ -52,7 +52,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.UseStaticFiles();
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 app.MapGet("/health", () => Results.Ok(new { Status = "Healthy", Timestamp = DateTime.UtcNow }));
 
 using (var scope = app.Services.CreateScope())
