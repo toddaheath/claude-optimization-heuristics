@@ -11,6 +11,7 @@ export const AlgorithmType = {
   GeneticAlgorithm: 'GeneticAlgorithm',
   ParticleSwarmOptimization: 'ParticleSwarmOptimization',
   SlimeMoldOptimization: 'SlimeMoldOptimization',
+  TabuSearch: 'TabuSearch',
 } as const;
 export type AlgorithmType = (typeof AlgorithmType)[keyof typeof AlgorithmType];
 
@@ -75,6 +76,7 @@ export const ALGORITHM_LABELS: Record<AlgorithmType, string> = {
   [AlgorithmType.GeneticAlgorithm]: 'Genetic Algorithm',
   [AlgorithmType.ParticleSwarmOptimization]: 'Particle Swarm Optimization',
   [AlgorithmType.SlimeMoldOptimization]: 'Slime Mold Optimization',
+  [AlgorithmType.TabuSearch]: 'Tabu Search',
 };
 
 export const DEFAULT_PARAMETERS: Record<AlgorithmType, Record<string, number>> = {
@@ -104,6 +106,10 @@ export const DEFAULT_PARAMETERS: Record<AlgorithmType, Record<string, number>> =
   [AlgorithmType.SlimeMoldOptimization]: {
     populationSize: 30,
     z: 0.03,
+  },
+  [AlgorithmType.TabuSearch]: {
+    tabuTenure: 10,
+    neighborhoodSize: 50,
   },
 };
 

@@ -12,6 +12,7 @@ public class AlgorithmFactoryTests
     [InlineData(AlgorithmType.GeneticAlgorithm, typeof(GeneticAlgorithm))]
     [InlineData(AlgorithmType.ParticleSwarmOptimization, typeof(ParticleSwarmOptimization))]
     [InlineData(AlgorithmType.SlimeMoldOptimization, typeof(SlimeMoldOptimization))]
+    [InlineData(AlgorithmType.TabuSearch, typeof(TabuSearch))]
     public void Create_ReturnsCorrectAlgorithmType(AlgorithmType type, Type expectedType)
     {
         var algorithm = AlgorithmFactory.Create(type);

@@ -11,6 +11,7 @@ public static class AlgorithmFactory
         AlgorithmType.GeneticAlgorithm => new GeneticAlgorithm(),
         AlgorithmType.ParticleSwarmOptimization => new ParticleSwarmOptimization(),
         AlgorithmType.SlimeMoldOptimization => new SlimeMoldOptimization(),
+        AlgorithmType.TabuSearch => new TabuSearch(),
         _ => throw new ArgumentOutOfRangeException(nameof(type), $"Unknown algorithm type: {type}")
     };
 }

@@ -20,6 +20,8 @@ const PARAM_LABELS: Record<string, string> = {
   cognitiveWeight: 'Cognitive Weight',
   socialWeight: 'Social Weight',
   z: 'Exploration Factor (z)',
+  tabuTenure: 'Tabu Tenure',
+  neighborhoodSize: 'Neighborhood Size',
 };
 
 export function ParameterForm({ parameters, onChange }: Props) {
