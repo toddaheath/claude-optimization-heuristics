@@ -6,5 +6,6 @@ public enum AlgorithmType
     AntColonyOptimization,
     GeneticAlgorithm,
     ParticleSwarmOptimization,
-    SlimeMoldOptimization
+    SlimeMoldOptimization,
+    TabuSearch
 }
