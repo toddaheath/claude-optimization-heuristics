@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: optimization-api
+  name: opt-sim-api
   labels:
-    app: optimization-api
+    app: opt-sim-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: optimization-api
+      app: opt-sim-api
   template:
     metadata:
       labels:
-        app: optimization-api
+        app: opt-sim-api
     spec:
       containers:
         - name: api
-          image: optimization-api:latest
+          image: opt-sim-api:latest
           ports:
             - containerPort: 8080
           envFrom:

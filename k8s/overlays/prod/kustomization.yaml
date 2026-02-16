@@ -8,8 +8,8 @@ resources:
   - ../../base
 
 images:
-  - name: optimization-api
-    newName: REPLACE_ACR.azurecr.io/optimization-api
+  - name: opt-sim-api
+    newName: REPLACE_ACR.azurecr.io/opt-sim-api
     newTag: prod-latest
 
 patches:
@@ -24,7 +24,7 @@ patches:
       apiVersion: apps/v1
       kind: Deployment
       metadata:
-        name: optimization-api
+        name: opt-sim-api
       spec:
         replicas: 2
         template:
