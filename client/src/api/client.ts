@@ -8,7 +8,7 @@ import type {
   AlgorithmType,
 } from '../types';
 
-const api = axios.create({ baseURL: '/api/v1' });
+const api = axios.create({ baseURL: `${import.meta.env.VITE_API_URL || ''}/api/v1` });
 
 function unwrap<T>(response: { data: ApiResponse<T> }): T {
   if (!response.data.success) {

@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: optimization-dev
+
+resources:
+  - namespace.yaml
+  - ../../base
+
+images:
+  - name: optimization-api
+    newName: REPLACE_ACR.azurecr.io/optimization-api
+    newTag: dev-latest
+
+patches:
+  - patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: optimization-config
+      data:
+        ASPNETCORE_ENVIRONMENT: Development
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: optimization-api
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+              - name: api
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+  - patch: |-
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: postgres-data
+      spec:
+        resources:
+          requests:
+            storage: 1Gi
