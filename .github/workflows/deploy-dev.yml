@@ -71,13 +71,16 @@ jobs:
           resource-group: ${{ vars.AKS_RESOURCE_GROUP }}
 
       - name: Deploy with Kustomize
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
           cd k8s/overlays/dev
           kustomize edit set image optimization-api=${{ vars.ACR_LOGIN_SERVER }}/optimization-api:${{ needs.build-and-push.outputs.image-tag }}
+          envsubst < kustomization.yaml > kustomization.tmp && mv kustomization.tmp kustomization.yaml
           kubectl apply -k .
 
       - name: Wait for rollout
-        run: kubectl rollout status deployment/optimization-api -n optimization-dev --timeout=120s
+        run: kubectl rollout status deployment/optimization-api -n optimization-dev --timeout=300s
 
   deploy-spa:
     name: Deploy SPA to Storage
