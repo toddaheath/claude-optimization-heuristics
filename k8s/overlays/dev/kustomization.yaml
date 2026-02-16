@@ -40,6 +40,14 @@ patches:
                     memory: 512Mi
   - patch: |-
       apiVersion: v1
+      kind: Secret
+      metadata:
+        name: optimization-secrets
+      stringData:
+        POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+        ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=optimization_heuristics;Username=postgres;Password=${POSTGRES_PASSWORD}"
+  - patch: |-
+      apiVersion: v1
       kind: PersistentVolumeClaim
       metadata:
         name: postgres-data
