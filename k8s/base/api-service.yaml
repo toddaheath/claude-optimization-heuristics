@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: optimization-api
+  name: opt-sim-api
   labels:
-    app: optimization-api
+    app: opt-sim-api
 spec:
   type: ClusterIP
   ports:
@@ -11,4 +11,4 @@ spec:
       targetPort: 8080
       protocol: TCP
   selector:
-    app: optimization-api
+    app: opt-sim-api
