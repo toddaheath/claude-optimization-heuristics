@@ -118,4 +118,5 @@ jobs:
             --account-name ${{ vars.STORAGE_ACCOUNT_NAME }} \
             --source dist \
             --destination '$web' \
+            --auth-mode login \
             --overwrite
