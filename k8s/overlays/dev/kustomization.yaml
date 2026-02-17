@@ -20,6 +20,7 @@ patches:
         name: optimization-config
       data:
         ASPNETCORE_ENVIRONMENT: Development
+        CorsOrigins__0: "https://opt-sim-api.dev.heathrobotics.io"
   - patch: |-
       apiVersion: apps/v1
       kind: Deployment
