@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: opt-sim-prod
+  name: opt-sim-api-prod
