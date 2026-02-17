@@ -47,6 +47,27 @@ patches:
         POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
         ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=optimization_heuristics;Username=postgres;Password=${POSTGRES_PASSWORD}"
   - patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: opt-sim-api
+      spec:
+        tls:
+          - hosts:
+              - opt-sim-api.dev.heathrobotics.io
+            secretName: opt-sim-api-tls
+        rules:
+          - host: opt-sim-api.dev.heathrobotics.io
+            http:
+              paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: opt-sim-api
+                      port:
+                        number: 80
+  - patch: |-
       apiVersion: v1
       kind: PersistentVolumeClaim
       metadata:
