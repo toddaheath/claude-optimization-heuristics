@@ -9,14 +9,32 @@ import { ConvergenceChart } from '../components/ConvergenceChart';
 import { RunStatus } from '../types';
 
 export function HomePage() {
-  const { currentRun, iterationHistory, currentIteration } = useStore();
-  const { currentFrame } = useAnimation();
+  const { currentRun, iterationHistory, currentIteration, selectedProblemId } = useStore();
+  const { currentFrame, totalFrames } = useAnimation();
 
+  // Show cities as soon as a problem is selected — not just after a run completes.
+  const problemId = selectedProblemId || currentRun?.problemDefinitionId;
   const { data: problem } = useQuery({
-    queryKey: ['problem', currentRun?.problemDefinitionId],
-    queryFn: () => problemApi.getById(currentRun!.problemDefinitionId),
-    enabled: !!currentRun?.problemDefinitionId,
+    queryKey: ['problem', problemId],
+    queryFn: () => problemApi.getById(problemId!),
+    enabled: !!problemId,
   });
+
+  const cities = problem?.cities ?? [];
+
+  // Route is "complete" when the run finished and we're on the final animation frame
+  const isComplete =
+    currentRun?.status === RunStatus.Completed &&
+    totalFrames > 0 &&
+    currentIteration >= totalFrames - 1;
+
+  // Improvement % relative to the naive sequential tour's first-iteration distance
+  const initialDistance = iterationHistory[0]?.bestDistance;
+  const currentDistance = currentFrame?.bestDistance;
+  const improvementPct =
+    initialDistance && currentDistance && initialDistance > 0
+      ? (((initialDistance - currentDistance) / initialDistance) * 100).toFixed(1)
+      : null;
 
   return (
     <div className="flex gap-6 p-6 max-w-screen-xl mx-auto">
@@ -25,10 +43,12 @@ export function HomePage() {
       </div>
 
       <div className="flex-1 space-y-4">
+        {/* Header row */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">TSP Visualization</h1>
-          {currentRun && (
-            <div className="text-sm text-gray-600">
+
+          <div className="flex items-center gap-3 text-sm text-gray-600">
+            {currentRun && (
               <span
                 className={`px-2 py-1 rounded text-xs font-medium ${
                   currentRun.status === RunStatus.Completed
@@ -40,15 +60,38 @@ export function HomePage() {
               >
                 {currentRun.status}
               </span>
-              {currentRun.bestDistance != null && (
-                <span className="ml-2">Best: {currentRun.bestDistance.toFixed(2)}</span>
-              )}
-              {currentRun.executionTimeMs > 0 && <span className="ml-2">({currentRun.executionTimeMs}ms)</span>}
-            </div>
-          )}
+            )}
+            {currentFrame && (
+              <>
+                <span>
+                  Iter <strong>{currentFrame.iteration + 1}</strong>/{iterationHistory.length}
+                </span>
+                <span>
+                  Dist <strong>{currentFrame.bestDistance.toFixed(2)}</strong>
+                </span>
+                {improvementPct !== null && (
+                  <span className="text-green-700 font-semibold">▼ {improvementPct}%</span>
+                )}
+                {currentRun?.executionTimeMs != null && currentRun.executionTimeMs > 0 && (
+                  <span className="text-gray-400">{currentRun.executionTimeMs}ms</span>
+                )}
+              </>
+            )}
+            {!currentFrame && cities.length > 0 && (
+              <span className="text-gray-400 text-xs italic">
+                {cities.length} cities · sequential tour
+              </span>
+            )}
+          </div>
         </div>
 
-        <TspCanvas cities={problem?.cities ?? []} currentFrame={currentFrame} width={700} height={500} />
+        <TspCanvas
+          cities={cities}
+          currentFrame={currentFrame}
+          isComplete={isComplete}
+          width={700}
+          height={500}
+        />
 
         <CanvasControls />
 
