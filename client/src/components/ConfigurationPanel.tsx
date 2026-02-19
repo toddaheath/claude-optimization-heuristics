@@ -72,6 +72,22 @@ export function ConfigurationPanel() {
     });
   };
 
+  const generateCircleCities = () => {
+    const cx = 250;
+    const cy = 200;
+    const radius = 180;
+    const cities: City[] = Array.from({ length: cityCount }, (_, i) => ({
+      id: i,
+      x: Math.round(cx + radius * Math.cos((2 * Math.PI * i) / cityCount)),
+      y: Math.round(cy + radius * Math.sin((2 * Math.PI * i) / cityCount)),
+    }));
+    createProblem.mutate({
+      name: `Circle ${cityCount} cities`,
+      description: `${cityCount} cities evenly arranged on a circle`,
+      cities,
+    });
+  };
+
   return (
     <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
       <h2 className="font-bold text-lg">Configuration</h2>
@@ -81,7 +97,7 @@ export function ConfigurationPanel() {
         <select
           value={selectedProblemId}
           onChange={(e) => setSelectedProblemId(e.target.value)}
-          className="w-full px-3 py-2 border rounded-lg text-sm"
+          className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
         >
           <option value="">Select a problem...</option>
           {problems?.map((p: ProblemDefinition) => (
@@ -91,22 +107,34 @@ export function ConfigurationPanel() {
           ))}
         </select>
 
-        <div className="flex gap-2 mt-2">
-          <input
-            type="number"
-            min={3}
-            max={200}
-            value={cityCount}
-            onChange={(e) => setCityCount(Number(e.target.value))}
-            className="w-20 px-2 py-1 border rounded text-sm"
-          />
-          <button
-            onClick={generateRandomCities}
-            disabled={createProblem.isPending}
-            className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 disabled:opacity-50"
-          >
-            {createProblem.isPending ? 'Generating...' : 'Generate Random'}
-          </button>
+        <div className="mt-2 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-gray-600 shrink-0">Cities:</label>
+            <input
+              type="number"
+              min={3}
+              max={200}
+              value={cityCount}
+              onChange={(e) => setCityCount(Number(e.target.value))}
+              className="w-20 px-2 py-1 border rounded text-sm bg-white"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={generateRandomCities}
+              disabled={createProblem.isPending}
+              className="flex-1 px-2 py-1.5 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 disabled:opacity-50"
+            >
+              {createProblem.isPending ? 'Generating...' : 'Random'}
+            </button>
+            <button
+              onClick={generateCircleCities}
+              disabled={createProblem.isPending}
+              className="flex-1 px-2 py-1.5 bg-purple-600 text-white rounded text-xs font-medium hover:bg-purple-700 disabled:opacity-50"
+            >
+              {createProblem.isPending ? 'Generating...' : 'Circle'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -120,7 +148,7 @@ export function ConfigurationPanel() {
           max={100000}
           value={maxIterations}
           onChange={(e) => setMaxIterations(Number(e.target.value))}
-          className="w-full px-3 py-2 border rounded-lg text-sm"
+          className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
         />
       </div>
 

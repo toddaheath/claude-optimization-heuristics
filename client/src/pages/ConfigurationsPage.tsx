@@ -61,7 +61,7 @@ export function ConfigurationsPage() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
               placeholder="Configuration name"
             />
           </div>
@@ -71,7 +71,7 @@ export function ConfigurationsPage() {
             <input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
               placeholder="Optional description"
             />
           </div>
@@ -85,7 +85,7 @@ export function ConfigurationsPage() {
               min={1}
               value={maxIterations}
               onChange={(e) => setMaxIterations(Number(e.target.value))}
-              className="w-full px-3 py-2 border rounded-lg text-sm"
+              className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
             />
           </div>
 

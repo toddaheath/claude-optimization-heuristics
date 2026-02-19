@@ -28,9 +28,16 @@ export function TspCanvas({ cities, currentFrame, width = 600, height = 500 }: P
     const rangeX = maxX - minX || 1;
     const rangeY = maxY - minY || 1;
 
+    // Use uniform scaling to preserve aspect ratio (circles stay circular)
+    const scaleUniform = Math.min((width - 2 * padding) / rangeX, (height - 2 * padding) / rangeY);
+    const drawW = rangeX * scaleUniform;
+    const drawH = rangeY * scaleUniform;
+    const originX = padding + (width - 2 * padding - drawW) / 2;
+    const originY = padding + (height - 2 * padding - drawH) / 2;
+
     const scale = (city: City) => ({
-      sx: padding + ((city.x - minX) / rangeX) * (width - 2 * padding),
-      sy: padding + ((city.y - minY) / rangeY) * (height - 2 * padding),
+      sx: originX + (city.x - minX) * scaleUniform,
+      sy: originY + (city.y - minY) * scaleUniform,
     });
 
     ctx.clearRect(0, 0, width, height);
