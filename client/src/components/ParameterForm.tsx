@@ -29,14 +29,14 @@ export function ParameterForm({ parameters, onChange }: Props) {
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700">Parameters</label>
       {Object.entries(parameters).map(([key, value]) => (
-        <div key={key} className="flex items-center gap-2">
-          <label className="text-xs text-gray-600 w-40 shrink-0">{PARAM_LABELS[key] ?? key}</label>
+        <div key={key}>
+          <label className="block text-xs text-gray-600 mb-0.5">{PARAM_LABELS[key] ?? key}</label>
           <input
             type="number"
             step="any"
             value={value}
             onChange={(e) => onChange({ ...parameters, [key]: parseFloat(e.target.value) || 0 })}
-            className="flex-1 px-2 py-1 border rounded text-sm"
+            className="w-full px-2 py-1 border rounded text-sm bg-white"
           />
         </div>
       ))}

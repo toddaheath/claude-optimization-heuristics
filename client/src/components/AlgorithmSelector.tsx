@@ -12,7 +12,7 @@ export function AlgorithmSelector({ value, onChange }: Props) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as AlgorithmType)}
-        className="w-full px-3 py-2 border rounded-lg text-sm"
+        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
       >
         {Object.values(AlgorithmType).map((type) => (
           <option key={type} value={type}>
