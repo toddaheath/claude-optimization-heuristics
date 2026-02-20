@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HomePage } from './pages/HomePage';
 import { HistoryPage } from './pages/HistoryPage';
 import { ConfigurationsPage } from './pages/ConfigurationsPage';
+import { DocumentationPage } from './pages/DocumentationPage';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000 } },
@@ -26,6 +27,9 @@ function Nav() {
       <NavLink to="/configurations" className={linkClass}>
         Configurations
       </NavLink>
+      <NavLink to="/docs" className={linkClass}>
+        Docs
+      </NavLink>
     </nav>
   );
 }
@@ -40,6 +44,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/configurations" element={<ConfigurationsPage />} />
+            <Route path="/docs" element={<DocumentationPage />} />
           </Routes>
         </div>
       </BrowserRouter>

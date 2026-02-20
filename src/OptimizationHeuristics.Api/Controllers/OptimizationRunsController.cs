@@ -24,6 +24,16 @@ public class OptimizationRunsController : ControllerBase
         return result.Map(MapToResponse).ToActionResult();
     }
 
+    [HttpGet("{id:guid}/progress")]
+    public async Task<ActionResult> GetProgress(Guid id)
+    {
+        var result = await _service.GetProgressAsync(id);
+        return result.Map(snap => new RunProgressResponse(
+            snap.RunId, snap.Status, snap.IterationHistory,
+            snap.BestDistance, snap.ExecutionTimeMs, snap.ErrorMessage
+        )).ToActionResult();
+    }
+
     [HttpGet]
     public async Task<ActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {

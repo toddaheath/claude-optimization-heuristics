@@ -21,3 +21,12 @@ public record OptimizationRunResponse(
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
+
+public record RunProgressResponse(
+    Guid RunId,
+    RunStatus Status,
+    List<IterationResult> IterationHistory,
+    double? BestDistance,
+    long ExecutionTimeMs,
+    string? ErrorMessage
+);

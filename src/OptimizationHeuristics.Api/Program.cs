@@ -27,6 +27,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IProblemDefinitionService, ProblemDefinitionService>();
 builder.Services.AddScoped<IAlgorithmConfigurationService, AlgorithmConfigurationService>();
 builder.Services.AddScoped<IOptimizationService, OptimizationService>();
+builder.Services.AddSingleton<IRunProgressStore, RunProgressStore>();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProblemDefinitionValidator>();

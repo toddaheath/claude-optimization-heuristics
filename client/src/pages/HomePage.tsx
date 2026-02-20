@@ -9,7 +9,14 @@ import { ConvergenceChart } from '../components/ConvergenceChart';
 import { RunStatus } from '../types';
 
 export function HomePage() {
-  const { currentRun, iterationHistory, currentIteration, selectedProblemId } = useStore();
+  const {
+    currentRun,
+    iterationHistory,
+    currentIteration,
+    selectedProblemId,
+    initialRoute,
+    isRunning,
+  } = useStore();
   const { currentFrame, totalFrames } = useAnimation();
 
   // Show cities as soon as a problem is selected — not just after a run completes.
@@ -28,9 +35,14 @@ export function HomePage() {
     totalFrames > 0 &&
     currentIteration >= totalFrames - 1;
 
-  // Improvement % relative to the naive sequential tour's first-iteration distance
+  // During a live run show the latest frame; otherwise the animation-controlled frame
+  const displayFrame = isRunning
+    ? iterationHistory[iterationHistory.length - 1] ?? null
+    : currentFrame;
+
+  // Improvement % relative to the first recorded distance
   const initialDistance = iterationHistory[0]?.bestDistance;
-  const currentDistance = currentFrame?.bestDistance;
+  const currentDistance = displayFrame?.bestDistance;
   const improvementPct =
     initialDistance && currentDistance && initialDistance > 0
       ? (((initialDistance - currentDistance) / initialDistance) * 100).toFixed(1)
@@ -53,21 +65,21 @@ export function HomePage() {
                 className={`px-2 py-1 rounded text-xs font-medium ${
                   currentRun.status === RunStatus.Completed
                     ? 'bg-green-100 text-green-800'
-                    : currentRun.status === RunStatus.Running
-                      ? 'bg-yellow-100 text-yellow-800'
+                    : currentRun.status === RunStatus.Running || isRunning
+                      ? 'bg-orange-100 text-orange-800'
                       : 'bg-gray-100 text-gray-800'
                 }`}
               >
-                {currentRun.status}
+                {isRunning ? 'Running' : currentRun.status}
               </span>
             )}
-            {currentFrame && (
+            {displayFrame && (
               <>
                 <span>
-                  Iter <strong>{currentFrame.iteration + 1}</strong>/{iterationHistory.length}
+                  Iter <strong>{displayFrame.iteration + 1}</strong>/{iterationHistory.length}
                 </span>
                 <span>
-                  Dist <strong>{currentFrame.bestDistance.toFixed(2)}</strong>
+                  Dist <strong>{displayFrame.bestDistance.toFixed(2)}</strong>
                 </span>
                 {improvementPct !== null && (
                   <span className="text-green-700 font-semibold">▼ {improvementPct}%</span>
@@ -77,9 +89,9 @@ export function HomePage() {
                 )}
               </>
             )}
-            {!currentFrame && cities.length > 0 && (
+            {!displayFrame && cities.length > 0 && (
               <span className="text-gray-400 text-xs italic">
-                {cities.length} cities · sequential tour
+                {cities.length} cities · random initial tour
               </span>
             )}
           </div>
@@ -87,15 +99,20 @@ export function HomePage() {
 
         <TspCanvas
           cities={cities}
-          currentFrame={currentFrame}
+          currentFrame={displayFrame}
+          initialRoute={initialRoute.length === cities.length ? initialRoute : undefined}
           isComplete={isComplete}
+          isRunning={isRunning}
           width={700}
           height={500}
         />
 
-        <CanvasControls />
+        {/* Animation controls are only relevant for post-run replay */}
+        {!isRunning && <CanvasControls />}
 
-        <ConvergenceChart history={iterationHistory} currentIteration={currentIteration} />
+        <ConvergenceChart history={iterationHistory} currentIteration={
+          isRunning ? iterationHistory.length - 1 : currentIteration
+        } />
       </div>
     </div>
   );
