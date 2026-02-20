@@ -27,6 +27,7 @@ export interface IterationResult {
   iteration: number;
   bestDistance: number;
   bestRoute: number[];
+  currentDistance: number; // candidate distance this iteration — noisy, can exceed bestDistance
 }
 
 export interface ProblemDefinition {

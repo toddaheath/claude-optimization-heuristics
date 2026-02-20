@@ -5,6 +5,9 @@ interface AppState {
   currentRun: OptimizationRun | null;
   setCurrentRun: (run: OptimizationRun | null) => void;
 
+  selectedProblemId: string;
+  setSelectedProblemId: (id: string) => void;
+
   // Animation state
   iterationHistory: IterationResult[];
   currentIteration: number;
@@ -19,12 +22,17 @@ interface AppState {
 export const useStore = create<AppState>((set) => ({
   currentRun: null,
   setCurrentRun: (run) =>
-    set({
+    set((state) => ({
       currentRun: run,
       iterationHistory: run?.iterationHistory ?? [],
       currentIteration: 0,
       isPlaying: false,
-    }),
+      // Sync selectedProblemId from run (covers history replay)
+      selectedProblemId: run?.problemDefinitionId ?? state.selectedProblemId,
+    })),
+
+  selectedProblemId: '',
+  setSelectedProblemId: (id) => set({ selectedProblemId: id }),
 
   iterationHistory: [],
   currentIteration: 0,

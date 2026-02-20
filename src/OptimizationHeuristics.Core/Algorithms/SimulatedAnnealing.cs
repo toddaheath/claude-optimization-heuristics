@@ -39,7 +39,7 @@ public class SimulatedAnnealing : AlgorithmBase
 
             temperature *= coolingRate;
 
-            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute)));
+            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), currentDistance));
         }
 
         return (bestRoute, bestDistance);
