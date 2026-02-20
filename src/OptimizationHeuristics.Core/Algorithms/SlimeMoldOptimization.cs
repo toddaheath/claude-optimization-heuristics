@@ -94,7 +94,8 @@ public class SlimeMoldOptimization : AlgorithmBase
                 bestDistance = fitness[iterBestIdx];
             }
 
-            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute)));
+            // fitness[iterBestIdx] = best individual in the population this iteration
+            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), fitness[iterBestIdx]));
         }
 
         return (bestRoute, bestDistance);

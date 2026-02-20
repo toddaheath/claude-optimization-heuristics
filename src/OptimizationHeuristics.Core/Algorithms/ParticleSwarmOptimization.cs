@@ -33,6 +33,7 @@ public class ParticleSwarmOptimization : AlgorithmBase
 
         for (var iteration = 0; iteration < maxIterations; iteration++)
         {
+            var iterationBestDistance = double.MaxValue;
             for (var i = 0; i < swarmSize; i++)
             {
                 // Compute swap sequences toward personal and global best
@@ -55,6 +56,9 @@ public class ParticleSwarmOptimization : AlgorithmBase
                     (particles[i][a], particles[i][b]) = (particles[i][b], particles[i][a]);
 
                 var distance = Route.CalculateTotalDistance(particles[i], cities);
+                if (distance < iterationBestDistance)
+                    iterationBestDistance = distance;
+
                 if (distance < personalBestDistance[i])
                 {
                     personalBest[i] = new List<int>(particles[i]);
@@ -68,7 +72,8 @@ public class ParticleSwarmOptimization : AlgorithmBase
                 }
             }
 
-            history.Add(new IterationResult(iteration, globalBestDistance, new List<int>(globalBest)));
+            // iterationBestDistance = best particle distance found this iteration (noisy)
+            history.Add(new IterationResult(iteration, globalBestDistance, new List<int>(globalBest), iterationBestDistance));
         }
 
         return (globalBest, globalBestDistance);

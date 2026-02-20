@@ -56,7 +56,8 @@ public class GeneticAlgorithm : AlgorithmBase
                 bestDistance = fitness[iterBestIdx];
             }
 
-            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute)));
+            // fitness[iterBestIdx] = best individual in this generation (population's current best)
+            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), fitness[iterBestIdx]));
         }
 
         return (bestRoute, bestDistance);
