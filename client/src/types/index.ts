@@ -71,6 +71,15 @@ export interface ApiResponse<T> {
   errors: string[];
 }
 
+export interface RunProgressResponse {
+  runId: string;
+  status: RunStatus;
+  iterationHistory: IterationResult[];
+  bestDistance?: number;
+  executionTimeMs: number;
+  errorMessage?: string;
+}
+
 export const ALGORITHM_LABELS: Record<AlgorithmType, string> = {
   [AlgorithmType.SimulatedAnnealing]: 'Simulated Annealing',
   [AlgorithmType.AntColonyOptimization]: 'Ant Colony Optimization',

@@ -4,6 +4,7 @@ import type {
   ProblemDefinition,
   AlgorithmConfiguration,
   OptimizationRun,
+  RunProgressResponse,
   City,
   AlgorithmType,
 } from '../types';
@@ -52,6 +53,8 @@ export const configApi = {
 export const runApi = {
   run: (data: { algorithmConfigurationId: string; problemDefinitionId: string }) =>
     api.post<ApiResponse<OptimizationRun>>('/optimization-runs', data).then(unwrap),
+  getProgress: (id: string) =>
+    api.get<ApiResponse<RunProgressResponse>>(`/optimization-runs/${id}/progress`).then(unwrap),
   getAll: (page = 1, pageSize = 20) =>
     api.get<ApiResponse<OptimizationRun[]>>('/optimization-runs', { params: { page, pageSize } }).then(unwrap),
   getById: (id: string) => api.get<ApiResponse<OptimizationRun>>(`/optimization-runs/${id}`).then(unwrap),

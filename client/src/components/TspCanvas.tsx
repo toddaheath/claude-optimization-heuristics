@@ -4,12 +4,22 @@ import type { City, IterationResult } from '../types';
 interface Props {
   cities: City[];
   currentFrame: IterationResult | null;
-  isComplete?: boolean; // true when showing the final optimized route
+  initialRoute?: number[]; // randomized underlay; falls back to sequential if omitted
+  isComplete?: boolean;    // true when showing the final optimized route
+  isRunning?: boolean;     // true while optimization is in progress
   width?: number;
   height?: number;
 }
 
-export function TspCanvas({ cities, currentFrame, isComplete = false, width = 600, height = 500 }: Props) {
+export function TspCanvas({
+  cities,
+  currentFrame,
+  initialRoute,
+  isComplete = false,
+  isRunning = false,
+  width = 600,
+  height = 500,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -71,20 +81,23 @@ export function TspCanvas({ cities, currentFrame, isComplete = false, width = 60
       ctx.setLineDash([]);
     };
 
-    // ── Layer 1: Naive sequential tour (always shown as grey underlay) ──────
-    const sequentialRoute = cities.map((_, i) => i);
-    drawRoute(sequentialRoute, '#e5e7eb', 1.5, true);
+    // ── Layer 1: Initial random tour (grey dashed underlay) ─────────────────
+    const underlayRoute =
+      initialRoute && initialRoute.length === cities.length
+        ? initialRoute
+        : cities.map((_, i) => i); // fallback to sequential
+    drawRoute(underlayRoute, '#e5e7eb', 1.5, true);
 
     // ── Layer 2: Current best route ─────────────────────────────────────────
     if (currentFrame && currentFrame.bestRoute.length > 0) {
-      // Green when complete (final solution), blue while searching
-      const routeColor = isComplete ? '#22c55e' : '#3b82f6';
+      // Green when complete (final solution), orange while running live, blue while replaying
+      const routeColor = isComplete ? '#22c55e' : isRunning ? '#f97316' : '#3b82f6';
       const routeWidth = isComplete ? 2.5 : 2;
       drawRoute(currentFrame.bestRoute, routeColor, routeWidth);
     }
 
     // ── Direction arrow on the first edge ───────────────────────────────────
-    const activeRoute = currentFrame?.bestRoute ?? sequentialRoute;
+    const activeRoute = currentFrame?.bestRoute ?? underlayRoute;
     if (activeRoute.length >= 2) {
       const a = toCanvas(cities[activeRoute[0]]);
       const b = toCanvas(cities[activeRoute[1]]);
@@ -99,7 +112,7 @@ export function TspCanvas({ cities, currentFrame, isComplete = false, width = 60
       ctx.moveTo(-arrowLen, -arrowLen / 2);
       ctx.lineTo(0, 0);
       ctx.lineTo(-arrowLen, arrowLen / 2);
-      ctx.strokeStyle = isComplete ? '#16a34a' : currentFrame ? '#2563eb' : '#9ca3af';
+      ctx.strokeStyle = isComplete ? '#16a34a' : isRunning ? '#ea580c' : currentFrame ? '#2563eb' : '#9ca3af';
       ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.restore();
@@ -123,7 +136,7 @@ export function TspCanvas({ cities, currentFrame, isComplete = false, width = 60
       ctx.fillText(String(i), sx + 8, sy - 6);
     });
 
-    // ── "Complete" badge ────────────────────────────────────────────────────
+    // ── Status badge ────────────────────────────────────────────────────────
     if (isComplete) {
       const text = 'Optimized';
       ctx.font = 'bold 12px sans-serif';
@@ -138,8 +151,22 @@ export function TspCanvas({ cities, currentFrame, isComplete = false, width = 60
       ctx.stroke();
       ctx.fillStyle = '#15803d';
       ctx.fillText(text, bx, by + 13);
+    } else if (isRunning) {
+      const text = 'Running...';
+      ctx.font = 'bold 12px sans-serif';
+      const tw = ctx.measureText(text).width;
+      const bx = width - tw - 20, by = 12;
+      ctx.fillStyle = '#fff7ed';
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(bx - 6, by - 1, tw + 12, 20, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#c2410c';
+      ctx.fillText(text, bx, by + 13);
     }
-  }, [cities, currentFrame, isComplete, width, height]);
+  }, [cities, currentFrame, initialRoute, isComplete, isRunning, width, height]);
 
   return (
     <canvas
