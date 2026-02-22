@@ -27,6 +27,7 @@ export interface IterationResult {
   iteration: number;
   bestDistance: number;
   bestRoute: number[];
+  currentDistance: number; // candidate distance this iteration — noisy, can exceed bestDistance
 }
 
 export interface ProblemDefinition {
@@ -68,6 +69,15 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   errors: string[];
+}
+
+export interface RunProgressResponse {
+  runId: string;
+  status: RunStatus;
+  iterationHistory: IterationResult[];
+  bestDistance?: number;
+  executionTimeMs: number;
+  errorMessage?: string;
 }
 
 export const ALGORITHM_LABELS: Record<AlgorithmType, string> = {

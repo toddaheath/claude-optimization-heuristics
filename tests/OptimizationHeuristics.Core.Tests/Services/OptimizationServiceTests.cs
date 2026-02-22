@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using OptimizationHeuristics.Core.Entities;
 using OptimizationHeuristics.Core.Enums;
@@ -13,6 +14,8 @@ public class OptimizationServiceTests
     private readonly IRepository<AlgorithmConfiguration> _configRepo;
     private readonly IRepository<ProblemDefinition> _problemRepo;
     private readonly IRepository<OptimizationRun> _runRepo;
+    private readonly IRunProgressStore _progressStore;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly OptimizationService _service;
 
     public OptimizationServiceTests()
@@ -21,16 +24,25 @@ public class OptimizationServiceTests
         _configRepo = Substitute.For<IRepository<AlgorithmConfiguration>>();
         _problemRepo = Substitute.For<IRepository<ProblemDefinition>>();
         _runRepo = Substitute.For<IRepository<OptimizationRun>>();
+        _progressStore = Substitute.For<IRunProgressStore>();
 
         _unitOfWork.Repository<AlgorithmConfiguration>().Returns(_configRepo);
         _unitOfWork.Repository<ProblemDefinition>().Returns(_problemRepo);
         _unitOfWork.Repository<OptimizationRun>().Returns(_runRepo);
 
-        _service = new OptimizationService(_unitOfWork);
+        // Wire up scope factory so the background task can resolve IUnitOfWork
+        _scopeFactory = Substitute.For<IServiceScopeFactory>();
+        var scope = Substitute.For<IServiceScope>();
+        var sp = Substitute.For<IServiceProvider>();
+        _scopeFactory.CreateScope().Returns(scope);
+        scope.ServiceProvider.Returns(sp);
+        sp.GetService(typeof(IUnitOfWork)).Returns(_unitOfWork);
+
+        _service = new OptimizationService(_unitOfWork, _progressStore, _scopeFactory);
     }
 
     [Fact]
-    public async Task RunAsync_ValidInputs_ReturnsCompletedRun()
+    public async Task RunAsync_ValidInputs_ReturnsRunningStatus()
     {
         var configId = Guid.NewGuid();
         var problemId = Guid.NewGuid();
@@ -40,7 +52,7 @@ public class OptimizationServiceTests
             Id = configId,
             Name = "SA",
             AlgorithmType = AlgorithmType.SimulatedAnnealing,
-            MaxIterations = 50,
+            MaxIterations = 20,
             Parameters = new Dictionary<string, object>
             {
                 { "initialTemperature", 1000.0 },
@@ -65,10 +77,9 @@ public class OptimizationServiceTests
         var result = await _service.RunAsync(configId, problemId);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Status.Should().Be(RunStatus.Completed);
-        result.Value.BestDistance.Should().BeGreaterThan(0);
-        result.Value.BestRoute.Should().HaveCount(4);
-        result.Value.IterationHistory.Should().NotBeEmpty();
+        // The run starts in Running status; background task completes it asynchronously.
+        result.Value.Status.Should().Be(RunStatus.Running);
+        result.Value.Id.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -155,5 +166,28 @@ public class OptimizationServiceTests
         var result = await _service.DeleteAsync(Guid.NewGuid());
 
         result.IsFailed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetProgressAsync_UnknownRun_ReturnsFail()
+    {
+        _progressStore.GetSnapshot(Arg.Any<Guid>()).Returns((RunProgressSnapshot?)null);
+
+        var result = await _service.GetProgressAsync(Guid.NewGuid());
+
+        result.IsFailed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetProgressAsync_KnownRun_ReturnsSnapshot()
+    {
+        var runId = Guid.NewGuid();
+        var snapshot = new RunProgressSnapshot(runId, RunStatus.Running, [], null, 0, null);
+        _progressStore.GetSnapshot(runId).Returns(snapshot);
+
+        var result = await _service.GetProgressAsync(runId);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.RunId.Should().Be(runId);
     }
 }

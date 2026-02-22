@@ -7,10 +7,13 @@ public abstract class AlgorithmBase : IOptimizationAlgorithm
 {
     protected Random Rng = new();
 
-    public OptimizationResult Solve(IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters)
+    public OptimizationResult Solve(IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters,
+        Action<IterationResult>? onIteration = null)
     {
         var sw = Stopwatch.StartNew();
-        var history = new List<IterationResult>();
+        List<IterationResult> history = onIteration != null
+            ? new ObservableList(onIteration)
+            : new List<IterationResult>();
 
         var (bestRoute, bestDistance) = RunAlgorithm(cities, maxIterations, parameters, history);
 
@@ -23,6 +26,14 @@ public abstract class AlgorithmBase : IOptimizationAlgorithm
             TotalIterations = history.Count,
             ExecutionTimeMs = sw.ElapsedMilliseconds
         };
+    }
+
+    // Wraps a List<IterationResult> to fire a callback whenever an item is added.
+    private sealed class ObservableList : List<IterationResult>
+    {
+        private readonly Action<IterationResult> _callback;
+        public ObservableList(Action<IterationResult> callback) => _callback = callback;
+        public new void Add(IterationResult item) { base.Add(item); _callback(item); }
     }
 
     protected abstract (List<int> BestRoute, double BestDistance) RunAlgorithm(

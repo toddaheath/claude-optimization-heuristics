@@ -8,6 +8,14 @@ interface AppState {
   selectedProblemId: string;
   setSelectedProblemId: (id: string) => void;
 
+  // The randomized initial tour shown as grey underlay before/during optimization
+  initialRoute: number[];
+  setInitialRoute: (route: number[]) => void;
+
+  // True while the background optimization is running (polling active)
+  isRunning: boolean;
+  setIsRunning: (running: boolean) => void;
+
   // Animation state
   iterationHistory: IterationResult[];
   currentIteration: number;
@@ -27,12 +35,19 @@ export const useStore = create<AppState>((set) => ({
       iterationHistory: run?.iterationHistory ?? [],
       currentIteration: 0,
       isPlaying: false,
+      isRunning: false,
       // Sync selectedProblemId from run (covers history replay)
       selectedProblemId: run?.problemDefinitionId ?? state.selectedProblemId,
     })),
 
   selectedProblemId: '',
   setSelectedProblemId: (id) => set({ selectedProblemId: id }),
+
+  initialRoute: [],
+  setInitialRoute: (route) => set({ initialRoute: route }),
+
+  isRunning: false,
+  setIsRunning: (running) => set({ isRunning: running }),
 
   iterationHistory: [],
   currentIteration: 0,

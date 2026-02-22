@@ -48,7 +48,8 @@ public class AntColonyOptimization : AlgorithmBase
                 bestDistance = iterationBestDistance;
             }
 
-            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute)));
+            // iterationBestDistance = best ant found this iteration (noisy; can be > bestDistance)
+            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), iterationBestDistance));
         }
 
         return (bestRoute, bestDistance);
