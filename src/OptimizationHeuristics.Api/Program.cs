@@ -7,8 +7,15 @@ using OptimizationHeuristics.Api.Validators;
 using OptimizationHeuristics.Core.Services;
 using OptimizationHeuristics.Infrastructure.Data;
 using OptimizationHeuristics.Infrastructure.Repositories;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, services, config) =>
+    config.ReadFrom.Configuration(ctx.Configuration)
+          .ReadFrom.Services(services)
+          .WriteTo.Console(new CompactJsonFormatter()));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
