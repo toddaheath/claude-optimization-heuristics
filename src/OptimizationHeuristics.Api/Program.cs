@@ -91,7 +91,8 @@ app.MapGet("/health/live", () =>
 
 app.MapGet("/health/ready", async (ApplicationDbContext db) =>
 {
-    var canConnect = await db.Database.CanConnectAsync();
+    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+    var canConnect = await db.Database.CanConnectAsync(cts.Token);
     return canConnect
         ? Results.Ok(new { Status = "Ready", Timestamp = DateTime.UtcNow })
         : Results.Json(new { Status = "Unavailable", Timestamp = DateTime.UtcNow }, statusCode: 503);
