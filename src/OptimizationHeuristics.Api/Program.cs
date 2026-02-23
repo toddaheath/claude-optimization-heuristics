@@ -61,9 +61,16 @@ app.UseSerilogRequestLogging(options =>
     options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
     options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
     {
+        var path = httpContext.Request.Path;
         diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
         diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-        diagnosticContext.Set("IsHealthCheck", httpContext.Request.Path.StartsWithSegments("/health"));
+        diagnosticContext.Set("IsHealthCheck", path.StartsWithSegments("/health"));
+        diagnosticContext.Set("ProbeType", path.Value switch
+        {
+            "/health/live"  => "liveness",
+            "/health/ready" => "readiness",
+            _               => null
+        });
     };
 });
 
@@ -78,6 +85,18 @@ app.UseStaticFiles();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 app.MapGet("/health", () => Results.Ok(new { Status = "Healthy", Timestamp = DateTime.UtcNow }));
+
+app.MapGet("/health/live", () =>
+    Results.Ok(new { Status = "Alive", Timestamp = DateTime.UtcNow }));
+
+app.MapGet("/health/ready", async (ApplicationDbContext db) =>
+{
+    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+    var canConnect = await db.Database.CanConnectAsync(cts.Token);
+    return canConnect
+        ? Results.Ok(new { Status = "Ready", Timestamp = DateTime.UtcNow })
+        : Results.Json(new { Status = "Unavailable", Timestamp = DateTime.UtcNow }, statusCode: 503);
+});
 
 try
 {
