@@ -10,10 +10,6 @@ using OptimizationHeuristics.Infrastructure.Repositories;
 using Serilog;
 using Serilog.Formatting.Compact;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(new CompactJsonFormatter())
-    .CreateBootstrapLogger();
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((ctx, services, config) =>
