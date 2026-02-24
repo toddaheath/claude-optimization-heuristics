@@ -75,6 +75,12 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Seed migrations history for pre-existing schema
+        run: |
+          kubectl exec -n opt-sim-api-dev postgres-0 -- psql -U postgres -d optimization_heuristics \
+            -c "CREATE TABLE IF NOT EXISTS \"__EFMigrationsHistory\" (\"MigrationId\" varchar(150) NOT NULL, \"ProductVersion\" varchar(32) NOT NULL, CONSTRAINT \"PK___EFMigrationsHistory\" PRIMARY KEY (\"MigrationId\"));" \
+            -c "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") SELECT '20260224142154_InitialCreate', '8.0.0' WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'problem_definitions') AND NOT EXISTS (SELECT 1 FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = '20260224142154_InitialCreate');"
+
       - name: Run database migrations
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -84,12 +90,6 @@ jobs:
           PF_PID=$!
           sleep 5
           dotnet tool install --global dotnet-ef
-          # If tables exist but migrations history doesn't, seed the history so
-          # EF skips re-applying migrations that EnsureCreated already ran.
-          PGPASSWORD="${POSTGRES_PASSWORD}" psql \
-            -h localhost -U postgres -d optimization_heuristics \
-            -c "CREATE TABLE IF NOT EXISTS \"__EFMigrationsHistory\" (\"MigrationId\" varchar(150) NOT NULL, \"ProductVersion\" varchar(32) NOT NULL, CONSTRAINT \"PK___EFMigrationsHistory\" PRIMARY KEY (\"MigrationId\"));" \
-            -c "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") SELECT '20260224142154_InitialCreate', '8.0.0' WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'problem_definitions') AND NOT EXISTS (SELECT 1 FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = '20260224142154_InitialCreate');"
           dotnet ef database update \
             --project src/OptimizationHeuristics.Infrastructure \
             --startup-project src/OptimizationHeuristics.Api \
