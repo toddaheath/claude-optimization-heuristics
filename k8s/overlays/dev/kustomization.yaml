@@ -51,7 +51,7 @@ patches:
       apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:
-        name: opt-sim-api
+        name: opt-sim-api-ingress
       spec:
         tls:
           - hosts:
