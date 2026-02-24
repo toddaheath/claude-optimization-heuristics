@@ -71,6 +71,26 @@ jobs:
           cluster-name: ${{ vars.AKS_CLUSTER_NAME }}
           resource-group: ${{ vars.AKS_RESOURCE_GROUP }}
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run database migrations
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: |
+          dotnet restore
+          kubectl port-forward svc/postgres 5432:5432 -n opt-sim-api-prod &
+          PF_PID=$!
+          sleep 5
+          dotnet tool install --global dotnet-ef
+          dotnet ef database update \
+            --project src/OptimizationHeuristics.Infrastructure \
+            --startup-project src/OptimizationHeuristics.Api \
+            --connection "Host=localhost;Port=5432;Database=optimization_heuristics;Username=postgres;Password=${POSTGRES_PASSWORD}"
+          kill $PF_PID
+
       - name: Remove legacy ingress
         run: kubectl delete ingress opt-sim-api -n opt-sim-api-prod --ignore-not-found
 
