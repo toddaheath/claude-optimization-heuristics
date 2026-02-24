@@ -80,6 +80,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
+          dotnet restore
           kubectl port-forward svc/postgres 5432:5432 -n opt-sim-api-prod &
           PF_PID=$!
           sleep 5
