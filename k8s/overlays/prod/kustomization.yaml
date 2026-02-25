@@ -47,6 +47,7 @@ patches:
       stringData:
         POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
         ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=optimization_heuristics;Username=postgres;Password=${POSTGRES_PASSWORD}"
+        Jwt__SecretKey: "${JWT_SECRET_KEY}"
   - patch: |-
       apiVersion: networking.k8s.io/v1
       kind: Ingress
