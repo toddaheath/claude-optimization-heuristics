@@ -9,6 +9,7 @@ import type {
   AlgorithmType,
 } from '../types';
 import { authApi } from './authApi';
+import { useStore } from '../store/useStore';
 
 const api = axios.create({ baseURL: `${import.meta.env.VITE_API_URL || ''}/api/v1` });
 
@@ -19,15 +20,9 @@ function unwrap<T>(response: { data: ApiResponse<T> }): T {
   return response.data.data!;
 }
 
-// Lazy import store to avoid circular dependencies at module load time
-function getStore() {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require('../store/useStore').useStore.getState();
-}
-
 // --- Request interceptor: attach access token ---
 api.interceptors.request.use((config) => {
-  const { accessToken } = getStore();
+  const { accessToken } = useStore.getState();
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -70,7 +65,7 @@ api.interceptors.response.use(
     originalRequest._retry = true;
     isRefreshing = true;
 
-    const { refreshToken, setTokens, setCurrentUser, clearAuth } = getStore();
+    const { refreshToken, setTokens, setCurrentUser, clearAuth } = useStore.getState();
 
     if (!refreshToken) {
       clearAuth();
