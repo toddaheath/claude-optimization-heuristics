@@ -11,6 +11,7 @@ public class ProblemDefinitionServiceTests
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRepository<ProblemDefinition> _repo;
     private readonly ProblemDefinitionService _service;
+    private readonly Guid _userId = Guid.NewGuid();
 
     public ProblemDefinitionServiceTests()
     {
@@ -28,9 +29,9 @@ public class ProblemDefinitionServiceTests
             new() { Id = Guid.NewGuid(), Name = "P1", Cities = new List<City>(), CityCount = 0 },
             new() { Id = Guid.NewGuid(), Name = "P2", Cities = new List<City>(), CityCount = 0 }
         };
-        _repo.GetAllAsync().Returns(problems);
+        _repo.FindAsync(Arg.Any<Expression<Func<ProblemDefinition, bool>>>()).Returns(problems);
 
-        var result = await _service.GetAllAsync();
+        var result = await _service.GetAllAsync(_userId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(2);
@@ -41,9 +42,9 @@ public class ProblemDefinitionServiceTests
     {
         var id = Guid.NewGuid();
         var problem = new ProblemDefinition { Id = id, Name = "Test", Cities = new List<City>(), CityCount = 0 };
-        _repo.GetByIdAsync(id).Returns(problem);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<ProblemDefinition, bool>>>()).Returns(problem);
 
-        var result = await _service.GetByIdAsync(id);
+        var result = await _service.GetByIdAsync(id, _userId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Name.Should().Be("Test");
@@ -52,9 +53,9 @@ public class ProblemDefinitionServiceTests
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsFail()
     {
-        _repo.GetByIdAsync(Arg.Any<Guid>()).Returns((ProblemDefinition?)null);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<ProblemDefinition, bool>>>()).Returns((ProblemDefinition?)null);
 
-        var result = await _service.GetByIdAsync(Guid.NewGuid());
+        var result = await _service.GetByIdAsync(Guid.NewGuid(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }
@@ -68,11 +69,12 @@ public class ProblemDefinitionServiceTests
             Cities = new List<City> { new City(0, 1.0, 2.0), new City(1, 3.0, 4.0) }
         };
 
-        var result = await _service.CreateAsync(problem);
+        var result = await _service.CreateAsync(problem, _userId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Id.Should().NotBeEmpty();
         result.Value.CityCount.Should().Be(2);
+        result.Value.UserId.Should().Be(_userId);
         await _unitOfWork.Received(1).SaveChangesAsync();
     }
 
@@ -81,9 +83,9 @@ public class ProblemDefinitionServiceTests
     {
         var id = Guid.NewGuid();
         var problem = new ProblemDefinition { Id = id, Name = "Test", Cities = new List<City>(), CityCount = 0 };
-        _repo.GetByIdAsync(id).Returns(problem);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<ProblemDefinition, bool>>>()).Returns(problem);
 
-        var result = await _service.DeleteAsync(id);
+        var result = await _service.DeleteAsync(id, _userId);
 
         result.IsSuccess.Should().BeTrue();
         _repo.Received(1).Delete(problem);
@@ -92,9 +94,9 @@ public class ProblemDefinitionServiceTests
     [Fact]
     public async Task DeleteAsync_NotFound_ReturnsFail()
     {
-        _repo.GetByIdAsync(Arg.Any<Guid>()).Returns((ProblemDefinition?)null);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<ProblemDefinition, bool>>>()).Returns((ProblemDefinition?)null);
 
-        var result = await _service.DeleteAsync(Guid.NewGuid());
+        var result = await _service.DeleteAsync(Guid.NewGuid(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }

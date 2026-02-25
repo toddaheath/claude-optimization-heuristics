@@ -12,31 +12,32 @@ public class AlgorithmConfigurationService : IAlgorithmConfigurationService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<List<AlgorithmConfiguration>>> GetAllAsync()
+    public async Task<Result<List<AlgorithmConfiguration>>> GetAllAsync(Guid userId)
     {
-        var configs = await _unitOfWork.Repository<AlgorithmConfiguration>().GetAllAsync();
+        var configs = await _unitOfWork.Repository<AlgorithmConfiguration>().FindAsync(x => x.UserId == userId);
         return Result.Ok(configs);
     }
 
-    public async Task<Result<AlgorithmConfiguration>> GetByIdAsync(Guid id)
+    public async Task<Result<AlgorithmConfiguration>> GetByIdAsync(Guid id, Guid userId)
     {
-        var config = await _unitOfWork.Repository<AlgorithmConfiguration>().GetByIdAsync(id);
+        var config = await _unitOfWork.Repository<AlgorithmConfiguration>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (config is null)
             return Result.Fail<AlgorithmConfiguration>("Algorithm configuration not found");
         return Result.Ok(config);
     }
 
-    public async Task<Result<AlgorithmConfiguration>> CreateAsync(AlgorithmConfiguration config)
+    public async Task<Result<AlgorithmConfiguration>> CreateAsync(AlgorithmConfiguration config, Guid userId)
     {
         config.Id = Guid.NewGuid();
+        config.UserId = userId;
         await _unitOfWork.Repository<AlgorithmConfiguration>().AddAsync(config);
         await _unitOfWork.SaveChangesAsync();
         return Result.Ok(config);
     }
 
-    public async Task<Result<AlgorithmConfiguration>> UpdateAsync(Guid id, AlgorithmConfiguration config)
+    public async Task<Result<AlgorithmConfiguration>> UpdateAsync(Guid id, AlgorithmConfiguration config, Guid userId)
     {
-        var existing = await _unitOfWork.Repository<AlgorithmConfiguration>().GetByIdAsync(id);
+        var existing = await _unitOfWork.Repository<AlgorithmConfiguration>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (existing is null)
             return Result.Fail<AlgorithmConfiguration>("Algorithm configuration not found");
 
@@ -51,9 +52,9 @@ public class AlgorithmConfigurationService : IAlgorithmConfigurationService
         return Result.Ok(existing);
     }
 
-    public async Task<Result> DeleteAsync(Guid id)
+    public async Task<Result> DeleteAsync(Guid id, Guid userId)
     {
-        var config = await _unitOfWork.Repository<AlgorithmConfiguration>().GetByIdAsync(id);
+        var config = await _unitOfWork.Repository<AlgorithmConfiguration>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (config is null)
             return Result.Fail("Algorithm configuration not found");
 

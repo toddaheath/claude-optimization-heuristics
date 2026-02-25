@@ -1,12 +1,16 @@
 using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OptimizationHeuristics.Api.Middleware;
+using OptimizationHeuristics.Api.Services;
 using OptimizationHeuristics.Api.Validators;
 using OptimizationHeuristics.Core.Services;
 using OptimizationHeuristics.Infrastructure.Data;
 using OptimizationHeuristics.Infrastructure.Repositories;
+using OptimizationHeuristics.Infrastructure.Services;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -35,6 +39,37 @@ builder.Services.AddScoped<IProblemDefinitionService, ProblemDefinitionService>(
 builder.Services.AddScoped<IAlgorithmConfigurationService, AlgorithmConfigurationService>();
 builder.Services.AddScoped<IOptimizationService, OptimizationService>();
 builder.Services.AddSingleton<IRunProgressStore, RunProgressStore>();
+
+// Auth services
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IAuthService>(sp => new AuthService(
+    sp.GetRequiredService<IUnitOfWork>(),
+    sp.GetRequiredService<ITokenService>(),
+    sp.GetRequiredService<IPasswordHasher>(),
+    int.Parse(builder.Configuration["Jwt:RefreshTokenExpiryDays"] ?? "7")));
+
+// JWT authentication
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var secretKeyBase64 = jwtSection["SecretKey"] ?? Convert.ToBase64String(new byte[32]);
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtSection["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSection["Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(secretKeyBase64)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+builder.Services.AddAuthorization();
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProblemDefinitionValidator>();
@@ -81,6 +116,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
 app.MapFallbackToFile("index.html");

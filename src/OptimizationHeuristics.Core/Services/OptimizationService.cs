@@ -19,13 +19,13 @@ public class OptimizationService : IOptimizationService
         _scopeFactory = scopeFactory;
     }
 
-    public async Task<Result<OptimizationRun>> RunAsync(Guid configurationId, Guid problemId)
+    public async Task<Result<OptimizationRun>> RunAsync(Guid configurationId, Guid problemId, Guid userId)
     {
-        var config = await _unitOfWork.Repository<AlgorithmConfiguration>().GetByIdAsync(configurationId);
+        var config = await _unitOfWork.Repository<AlgorithmConfiguration>().FindOneAsync(x => x.Id == configurationId && x.UserId == userId);
         if (config is null)
             return Result.Fail<OptimizationRun>("Algorithm configuration not found");
 
-        var problem = await _unitOfWork.Repository<ProblemDefinition>().GetByIdAsync(problemId);
+        var problem = await _unitOfWork.Repository<ProblemDefinition>().FindOneAsync(x => x.Id == problemId && x.UserId == userId);
         if (problem is null)
             return Result.Fail<OptimizationRun>("Problem definition not found");
 
@@ -34,6 +34,7 @@ public class OptimizationService : IOptimizationService
             Id = Guid.NewGuid(),
             AlgorithmConfigurationId = configurationId,
             ProblemDefinitionId = problemId,
+            UserId = userId,
             Status = RunStatus.Running
         };
 
@@ -100,9 +101,9 @@ public class OptimizationService : IOptimizationService
             : Task.FromResult(Result.Ok(snapshot));
     }
 
-    public async Task<Result<List<OptimizationRun>>> GetAllAsync(int page = 1, int pageSize = 20)
+    public async Task<Result<List<OptimizationRun>>> GetAllAsync(Guid userId, int page = 1, int pageSize = 20)
     {
-        var runs = await _unitOfWork.Repository<OptimizationRun>().GetAllAsync();
+        var runs = await _unitOfWork.Repository<OptimizationRun>().FindAsync(x => x.UserId == userId);
         var paged = runs
             .OrderByDescending(r => r.CreatedAt)
             .Skip((page - 1) * pageSize)
@@ -111,17 +112,17 @@ public class OptimizationService : IOptimizationService
         return Result.Ok(paged);
     }
 
-    public async Task<Result<OptimizationRun>> GetByIdAsync(Guid id)
+    public async Task<Result<OptimizationRun>> GetByIdAsync(Guid id, Guid userId)
     {
-        var run = await _unitOfWork.Repository<OptimizationRun>().GetByIdAsync(id);
+        var run = await _unitOfWork.Repository<OptimizationRun>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (run is null)
             return Result.Fail<OptimizationRun>("Optimization run not found");
         return Result.Ok(run);
     }
 
-    public async Task<Result> DeleteAsync(Guid id)
+    public async Task<Result> DeleteAsync(Guid id, Guid userId)
     {
-        var run = await _unitOfWork.Repository<OptimizationRun>().GetByIdAsync(id);
+        var run = await _unitOfWork.Repository<OptimizationRun>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (run is null)
             return Result.Fail("Optimization run not found");
 

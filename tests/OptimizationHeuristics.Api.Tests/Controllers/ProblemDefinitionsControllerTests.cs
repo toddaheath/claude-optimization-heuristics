@@ -13,18 +13,22 @@ namespace OptimizationHeuristics.Api.Tests.Controllers;
 public class ProblemDefinitionsControllerTests
 {
     private readonly IProblemDefinitionService _service;
+    private readonly ICurrentUserService _currentUser;
     private readonly ProblemDefinitionsController _controller;
+    private readonly Guid _userId = Guid.NewGuid();
 
     public ProblemDefinitionsControllerTests()
     {
         _service = Substitute.For<IProblemDefinitionService>();
-        _controller = new ProblemDefinitionsController(_service);
+        _currentUser = Substitute.For<ICurrentUserService>();
+        _currentUser.UserId.Returns(_userId);
+        _controller = new ProblemDefinitionsController(_service, _currentUser);
     }
 
     [Fact]
     public async Task GetAll_ReturnsOk()
     {
-        _service.GetAllAsync().Returns(Result.Ok(new List<ProblemDefinition>
+        _service.GetAllAsync(_userId).Returns(Result.Ok(new List<ProblemDefinition>
         {
             new() { Id = Guid.NewGuid(), Name = "P1", Cities = new List<City>(), CityCount = 0 }
         }));
@@ -38,7 +42,7 @@ public class ProblemDefinitionsControllerTests
     public async Task GetById_Existing_ReturnsOk()
     {
         var id = Guid.NewGuid();
-        _service.GetByIdAsync(id).Returns(Result.Ok(new ProblemDefinition
+        _service.GetByIdAsync(id, _userId).Returns(Result.Ok(new ProblemDefinition
         {
             Id = id, Name = "Test", Cities = new List<City>(), CityCount = 0
         }));
@@ -51,7 +55,7 @@ public class ProblemDefinitionsControllerTests
     [Fact]
     public async Task GetById_NotFound_ReturnsNotFound()
     {
-        _service.GetByIdAsync(Arg.Any<Guid>()).Returns(Result.Fail<ProblemDefinition>("not found"));
+        _service.GetByIdAsync(Arg.Any<Guid>(), _userId).Returns(Result.Fail<ProblemDefinition>("not found"));
 
         var result = await _controller.GetById(Guid.NewGuid());
 
@@ -61,7 +65,7 @@ public class ProblemDefinitionsControllerTests
     [Fact]
     public async Task Create_ValidRequest_ReturnsOk()
     {
-        _service.CreateAsync(Arg.Any<ProblemDefinition>()).Returns(ci =>
+        _service.CreateAsync(Arg.Any<ProblemDefinition>(), _userId).Returns(ci =>
         {
             var pd = ci.Arg<ProblemDefinition>();
             pd.Id = Guid.NewGuid();
@@ -79,7 +83,7 @@ public class ProblemDefinitionsControllerTests
     [Fact]
     public async Task Delete_Existing_ReturnsNoContent()
     {
-        _service.DeleteAsync(Arg.Any<Guid>()).Returns(Result.Ok());
+        _service.DeleteAsync(Arg.Any<Guid>(), _userId).Returns(Result.Ok());
 
         var result = await _controller.Delete(Guid.NewGuid());
 
@@ -89,7 +93,7 @@ public class ProblemDefinitionsControllerTests
     [Fact]
     public async Task Delete_NotFound_ReturnsNotFound()
     {
-        _service.DeleteAsync(Arg.Any<Guid>()).Returns(Result.Fail("not found"));
+        _service.DeleteAsync(Arg.Any<Guid>(), _userId).Returns(Result.Fail("not found"));
 
         var result = await _controller.Delete(Guid.NewGuid());
 

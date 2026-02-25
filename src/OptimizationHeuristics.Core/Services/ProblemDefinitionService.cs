@@ -12,32 +12,33 @@ public class ProblemDefinitionService : IProblemDefinitionService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<List<ProblemDefinition>>> GetAllAsync()
+    public async Task<Result<List<ProblemDefinition>>> GetAllAsync(Guid userId)
     {
-        var problems = await _unitOfWork.Repository<ProblemDefinition>().GetAllAsync();
+        var problems = await _unitOfWork.Repository<ProblemDefinition>().FindAsync(x => x.UserId == userId);
         return Result.Ok(problems);
     }
 
-    public async Task<Result<ProblemDefinition>> GetByIdAsync(Guid id)
+    public async Task<Result<ProblemDefinition>> GetByIdAsync(Guid id, Guid userId)
     {
-        var problem = await _unitOfWork.Repository<ProblemDefinition>().GetByIdAsync(id);
+        var problem = await _unitOfWork.Repository<ProblemDefinition>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (problem is null)
             return Result.Fail<ProblemDefinition>("Problem definition not found");
         return Result.Ok(problem);
     }
 
-    public async Task<Result<ProblemDefinition>> CreateAsync(ProblemDefinition problem)
+    public async Task<Result<ProblemDefinition>> CreateAsync(ProblemDefinition problem, Guid userId)
     {
         problem.Id = Guid.NewGuid();
         problem.CityCount = problem.Cities.Count;
+        problem.UserId = userId;
         await _unitOfWork.Repository<ProblemDefinition>().AddAsync(problem);
         await _unitOfWork.SaveChangesAsync();
         return Result.Ok(problem);
     }
 
-    public async Task<Result> DeleteAsync(Guid id)
+    public async Task<Result> DeleteAsync(Guid id, Guid userId)
     {
-        var problem = await _unitOfWork.Repository<ProblemDefinition>().GetByIdAsync(id);
+        var problem = await _unitOfWork.Repository<ProblemDefinition>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (problem is null)
             return Result.Fail("Problem definition not found");
 

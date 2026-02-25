@@ -11,6 +11,7 @@ public class AlgorithmConfigurationServiceTests
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRepository<AlgorithmConfiguration> _repo;
     private readonly AlgorithmConfigurationService _service;
+    private readonly Guid _userId = Guid.NewGuid();
 
     public AlgorithmConfigurationServiceTests()
     {
@@ -27,9 +28,9 @@ public class AlgorithmConfigurationServiceTests
         {
             new() { Id = Guid.NewGuid(), Name = "SA Config", AlgorithmType = AlgorithmType.SimulatedAnnealing }
         };
-        _repo.GetAllAsync().Returns(configs);
+        _repo.FindAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns(configs);
 
-        var result = await _service.GetAllAsync();
+        var result = await _service.GetAllAsync(_userId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(1);
@@ -40,9 +41,9 @@ public class AlgorithmConfigurationServiceTests
     {
         var id = Guid.NewGuid();
         var config = new AlgorithmConfiguration { Id = id, Name = "Test" };
-        _repo.GetByIdAsync(id).Returns(config);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns(config);
 
-        var result = await _service.GetByIdAsync(id);
+        var result = await _service.GetByIdAsync(id, _userId);
 
         result.IsSuccess.Should().BeTrue();
     }
@@ -50,9 +51,9 @@ public class AlgorithmConfigurationServiceTests
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsFail()
     {
-        _repo.GetByIdAsync(Arg.Any<Guid>()).Returns((AlgorithmConfiguration?)null);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns((AlgorithmConfiguration?)null);
 
-        var result = await _service.GetByIdAsync(Guid.NewGuid());
+        var result = await _service.GetByIdAsync(Guid.NewGuid(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }
@@ -68,10 +69,11 @@ public class AlgorithmConfigurationServiceTests
             Parameters = new Dictionary<string, object>()
         };
 
-        var result = await _service.CreateAsync(config);
+        var result = await _service.CreateAsync(config, _userId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Id.Should().NotBeEmpty();
+        result.Value.UserId.Should().Be(_userId);
         await _unitOfWork.Received(1).SaveChangesAsync();
     }
 
@@ -84,7 +86,7 @@ public class AlgorithmConfigurationServiceTests
             Id = id, Name = "Old", AlgorithmType = AlgorithmType.SimulatedAnnealing,
             MaxIterations = 50, Parameters = new Dictionary<string, object>()
         };
-        _repo.GetByIdAsync(id).Returns(existing);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns(existing);
 
         var update = new AlgorithmConfiguration
         {
@@ -92,7 +94,7 @@ public class AlgorithmConfigurationServiceTests
             MaxIterations = 200, Parameters = new Dictionary<string, object> { { "key", "value" } }
         };
 
-        var result = await _service.UpdateAsync(id, update);
+        var result = await _service.UpdateAsync(id, update, _userId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Name.Should().Be("New Name");
@@ -102,9 +104,9 @@ public class AlgorithmConfigurationServiceTests
     [Fact]
     public async Task UpdateAsync_NotFound_ReturnsFail()
     {
-        _repo.GetByIdAsync(Arg.Any<Guid>()).Returns((AlgorithmConfiguration?)null);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns((AlgorithmConfiguration?)null);
 
-        var result = await _service.UpdateAsync(Guid.NewGuid(), new AlgorithmConfiguration());
+        var result = await _service.UpdateAsync(Guid.NewGuid(), new AlgorithmConfiguration(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }
@@ -114,9 +116,9 @@ public class AlgorithmConfigurationServiceTests
     {
         var id = Guid.NewGuid();
         var config = new AlgorithmConfiguration { Id = id, Name = "Test" };
-        _repo.GetByIdAsync(id).Returns(config);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns(config);
 
-        var result = await _service.DeleteAsync(id);
+        var result = await _service.DeleteAsync(id, _userId);
 
         result.IsSuccess.Should().BeTrue();
         _repo.Received(1).Delete(config);
@@ -125,9 +127,9 @@ public class AlgorithmConfigurationServiceTests
     [Fact]
     public async Task DeleteAsync_NotFound_ReturnsFail()
     {
-        _repo.GetByIdAsync(Arg.Any<Guid>()).Returns((AlgorithmConfiguration?)null);
+        _repo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns((AlgorithmConfiguration?)null);
 
-        var result = await _service.DeleteAsync(Guid.NewGuid());
+        var result = await _service.DeleteAsync(Guid.NewGuid(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }
