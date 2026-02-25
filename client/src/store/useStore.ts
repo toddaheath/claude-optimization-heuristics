@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { IterationResult, OptimizationRun } from '../types';
+import { persist } from 'zustand/middleware';
+import type { AuthUser, IterationResult, OptimizationRun } from '../types';
 
 interface AppState {
   currentRun: OptimizationRun | null;
@@ -25,36 +26,73 @@ interface AppState {
   setCurrentIteration: (iteration: number) => void;
   setIsPlaying: (playing: boolean) => void;
   setPlaybackSpeed: (speed: number) => void;
+
+  // Auth state
+  accessToken: string | null;
+  refreshToken: string | null;
+  refreshTokenExpiry: string | null;
+  currentUser: AuthUser | null;
+  setTokens: (tokens: { accessToken: string; refreshToken: string; refreshTokenExpiry: string }) => void;
+  setCurrentUser: (user: AuthUser | null) => void;
+  clearAuth: () => void;
 }
 
-export const useStore = create<AppState>((set) => ({
-  currentRun: null,
-  setCurrentRun: (run) =>
-    set((state) => ({
-      currentRun: run,
-      iterationHistory: run?.iterationHistory ?? [],
+export const useStore = create<AppState>()(
+  persist(
+    (set) => ({
+      currentRun: null,
+      setCurrentRun: (run) =>
+        set((state) => ({
+          currentRun: run,
+          iterationHistory: run?.iterationHistory ?? [],
+          currentIteration: 0,
+          isPlaying: false,
+          isRunning: false,
+          selectedProblemId: run?.problemDefinitionId ?? state.selectedProblemId,
+        })),
+
+      selectedProblemId: '',
+      setSelectedProblemId: (id) => set({ selectedProblemId: id }),
+
+      initialRoute: [],
+      setInitialRoute: (route) => set({ initialRoute: route }),
+
+      isRunning: false,
+      setIsRunning: (running) => set({ isRunning: running }),
+
+      iterationHistory: [],
       currentIteration: 0,
       isPlaying: false,
-      isRunning: false,
-      // Sync selectedProblemId from run (covers history replay)
-      selectedProblemId: run?.problemDefinitionId ?? state.selectedProblemId,
-    })),
+      playbackSpeed: 1,
+      setIterationHistory: (history) => set({ iterationHistory: history }),
+      setCurrentIteration: (iteration) => set({ currentIteration: iteration }),
+      setIsPlaying: (playing) => set({ isPlaying: playing }),
+      setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
 
-  selectedProblemId: '',
-  setSelectedProblemId: (id) => set({ selectedProblemId: id }),
-
-  initialRoute: [],
-  setInitialRoute: (route) => set({ initialRoute: route }),
-
-  isRunning: false,
-  setIsRunning: (running) => set({ isRunning: running }),
-
-  iterationHistory: [],
-  currentIteration: 0,
-  isPlaying: false,
-  playbackSpeed: 1,
-  setIterationHistory: (history) => set({ iterationHistory: history }),
-  setCurrentIteration: (iteration) => set({ currentIteration: iteration }),
-  setIsPlaying: (playing) => set({ isPlaying: playing }),
-  setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
-}));
+      // Auth
+      accessToken: null,
+      refreshToken: null,
+      refreshTokenExpiry: null,
+      currentUser: null,
+      setTokens: ({ accessToken, refreshToken, refreshTokenExpiry }) =>
+        set({ accessToken, refreshToken, refreshTokenExpiry }),
+      setCurrentUser: (user) => set({ currentUser: user }),
+      clearAuth: () =>
+        set({
+          accessToken: null,
+          refreshToken: null,
+          refreshTokenExpiry: null,
+          currentUser: null,
+        }),
+    }),
+    {
+      name: 'app-auth-storage',
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        refreshTokenExpiry: state.refreshTokenExpiry,
+        currentUser: state.currentUser,
+      }),
+    },
+  ),
+);

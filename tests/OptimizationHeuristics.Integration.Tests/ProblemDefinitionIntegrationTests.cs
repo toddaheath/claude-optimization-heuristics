@@ -8,10 +8,12 @@ namespace OptimizationHeuristics.Integration.Tests;
 public class ProblemDefinitionIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
+    private readonly CustomWebApplicationFactory _factory;
 
     public ProblemDefinitionIntegrationTests(CustomWebApplicationFactory factory)
     {
-        _client = factory.CreateClient();
+        _factory = factory;
+        _client = factory.CreateAuthenticatedClient(Guid.NewGuid());
     }
 
     [Fact]
@@ -51,5 +53,14 @@ public class ProblemDefinitionIntegrationTests : IClassFixture<CustomWebApplicat
     {
         var response = await _client.GetAsync($"/api/v1/problem-definitions/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Unauthenticated_Returns401()
+    {
+        // Use the test server's default client (no Authorization header)
+        using var unauthClient = _factory.CreateClient();
+        var response = await unauthClient.GetAsync("/api/v1/problem-definitions");
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 }

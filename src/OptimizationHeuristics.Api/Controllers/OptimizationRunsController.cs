@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OptimizationHeuristics.Api.DTOs;
 using OptimizationHeuristics.Api.Extensions;
@@ -7,20 +8,24 @@ using OptimizationHeuristics.Core.Services;
 namespace OptimizationHeuristics.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/optimization-runs")]
 public class OptimizationRunsController : ControllerBase
 {
     private readonly IOptimizationService _service;
+    private readonly ICurrentUserService _currentUser;
 
-    public OptimizationRunsController(IOptimizationService service)
+    public OptimizationRunsController(IOptimizationService service, ICurrentUserService currentUser)
     {
         _service = service;
+        _currentUser = currentUser;
     }
 
     [HttpPost]
     public async Task<ActionResult> Run([FromBody] RunOptimizationRequest request)
     {
-        var result = await _service.RunAsync(request.AlgorithmConfigurationId, request.ProblemDefinitionId);
+        var result = await _service.RunAsync(
+            request.AlgorithmConfigurationId, request.ProblemDefinitionId, _currentUser.UserId);
         return result.Map(MapToResponse).ToActionResult();
     }
 
@@ -37,21 +42,21 @@ public class OptimizationRunsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var result = await _service.GetAllAsync(page, pageSize);
+        var result = await _service.GetAllAsync(_currentUser.UserId, page, pageSize);
         return result.Map(runs => runs.Select(MapToResponse).ToList()).ToActionResult();
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult> GetById(Guid id)
     {
-        var result = await _service.GetByIdAsync(id);
+        var result = await _service.GetByIdAsync(id, _currentUser.UserId);
         return result.Map(MapToResponse).ToActionResult();
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var result = await _service.DeleteAsync(id);
+        var result = await _service.DeleteAsync(id, _currentUser.UserId);
         return result.ToActionResult();
     }
 

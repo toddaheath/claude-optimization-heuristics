@@ -13,18 +13,22 @@ namespace OptimizationHeuristics.Api.Tests.Controllers;
 public class OptimizationRunsControllerTests
 {
     private readonly IOptimizationService _service;
+    private readonly ICurrentUserService _currentUser;
     private readonly OptimizationRunsController _controller;
+    private readonly Guid _userId = Guid.NewGuid();
 
     public OptimizationRunsControllerTests()
     {
         _service = Substitute.For<IOptimizationService>();
-        _controller = new OptimizationRunsController(_service);
+        _currentUser = Substitute.For<ICurrentUserService>();
+        _currentUser.UserId.Returns(_userId);
+        _controller = new OptimizationRunsController(_service, _currentUser);
     }
 
     [Fact]
     public async Task Run_ValidRequest_ReturnsOk()
     {
-        _service.RunAsync(Arg.Any<Guid>(), Arg.Any<Guid>()).Returns(Result.Ok(new OptimizationRun
+        _service.RunAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), _userId).Returns(Result.Ok(new OptimizationRun
         {
             Id = Guid.NewGuid(), Status = RunStatus.Completed,
             BestDistance = 100.0, BestRoute = new List<int> { 0, 1, 2 },
@@ -39,7 +43,7 @@ public class OptimizationRunsControllerTests
     [Fact]
     public async Task GetAll_ReturnsOk()
     {
-        _service.GetAllAsync(1, 20).Returns(Result.Ok(new List<OptimizationRun>()));
+        _service.GetAllAsync(_userId, 1, 20).Returns(Result.Ok(new List<OptimizationRun>()));
 
         var result = await _controller.GetAll();
 
@@ -50,7 +54,7 @@ public class OptimizationRunsControllerTests
     public async Task GetById_Existing_ReturnsOk()
     {
         var id = Guid.NewGuid();
-        _service.GetByIdAsync(id).Returns(Result.Ok(new OptimizationRun
+        _service.GetByIdAsync(id, _userId).Returns(Result.Ok(new OptimizationRun
         {
             Id = id, Status = RunStatus.Completed
         }));
@@ -63,7 +67,7 @@ public class OptimizationRunsControllerTests
     [Fact]
     public async Task GetById_NotFound_ReturnsNotFound()
     {
-        _service.GetByIdAsync(Arg.Any<Guid>()).Returns(Result.Fail<OptimizationRun>("not found"));
+        _service.GetByIdAsync(Arg.Any<Guid>(), _userId).Returns(Result.Fail<OptimizationRun>("not found"));
 
         var result = await _controller.GetById(Guid.NewGuid());
 
@@ -73,7 +77,7 @@ public class OptimizationRunsControllerTests
     [Fact]
     public async Task Delete_ReturnsNoContent()
     {
-        _service.DeleteAsync(Arg.Any<Guid>()).Returns(Result.Ok());
+        _service.DeleteAsync(Arg.Any<Guid>(), _userId).Returns(Result.Ok());
 
         var result = await _controller.Delete(Guid.NewGuid());
 

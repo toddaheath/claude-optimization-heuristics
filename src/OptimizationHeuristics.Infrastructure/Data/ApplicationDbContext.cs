@@ -16,12 +16,48 @@ public class ApplicationDbContext : DbContext
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+    public DbSet<User> Users => Set<User>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<ProblemDefinition> ProblemDefinitions => Set<ProblemDefinition>();
     public DbSet<AlgorithmConfiguration> AlgorithmConfigurations => Set<AlgorithmConfiguration>();
     public DbSet<OptimizationRun> OptimizationRuns => Set<OptimizationRun>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("users");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(256);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(512);
+            entity.Property(e => e.DisplayName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.ExternalProvider).HasMaxLength(50);
+            entity.Property(e => e.ExternalId).HasMaxLength(256);
+            entity.HasIndex(e => new { e.ExternalProvider, e.ExternalId })
+                .HasFilter("\"ExternalProvider\" IS NOT NULL");
+            entity.Property(e => e.IsActive);
+            entity.Property(e => e.CreatedAt);
+            entity.Property(e => e.UpdatedAt);
+            entity.HasMany(e => e.RefreshTokens)
+                .WithOne(e => e.User)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("refresh_tokens");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Token).IsRequired().HasMaxLength(256);
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.Property(e => e.ExpiresAt);
+            entity.Property(e => e.IsRevoked);
+            entity.Property(e => e.ReplacedByToken).HasMaxLength(256);
+            entity.Property(e => e.RevokedReason).HasMaxLength(200);
+            entity.Property(e => e.CreatedAt);
+        });
+
         modelBuilder.Entity<ProblemDefinition>(entity =>
         {
             entity.ToTable("problem_definitions");
@@ -39,6 +75,13 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.CityCount);
             entity.Property(e => e.CreatedAt);
             entity.Property(e => e.UpdatedAt);
+            entity.Property(e => e.UserId);
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            entity.HasIndex(e => e.UserId);
         });
 
         modelBuilder.Entity<AlgorithmConfiguration>(entity =>
@@ -59,6 +102,13 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.MaxIterations);
             entity.Property(e => e.CreatedAt);
             entity.Property(e => e.UpdatedAt);
+            entity.Property(e => e.UserId);
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            entity.HasIndex(e => e.UserId);
         });
 
         modelBuilder.Entity<OptimizationRun>(entity =>
@@ -97,6 +147,14 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.ProblemDefinitionId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Property(e => e.UserId);
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+            entity.HasIndex(e => e.UserId);
         });
     }
 
@@ -121,6 +179,15 @@ public class ApplicationDbContext : DbContext
             {
                 or_.UpdatedAt = DateTime.UtcNow;
                 if (entry.State == EntityState.Added) or_.CreatedAt = DateTime.UtcNow;
+            }
+            else if (entry.Entity is User u)
+            {
+                u.UpdatedAt = DateTime.UtcNow;
+                if (entry.State == EntityState.Added) u.CreatedAt = DateTime.UtcNow;
+            }
+            else if (entry.Entity is RefreshToken rt && entry.State == EntityState.Added)
+            {
+                rt.CreatedAt = DateTime.UtcNow;
             }
         }
 

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OptimizationHeuristics.Api.DTOs;
 using OptimizationHeuristics.Api.Extensions;
@@ -7,27 +8,30 @@ using OptimizationHeuristics.Core.Services;
 namespace OptimizationHeuristics.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/algorithm-configurations")]
 public class AlgorithmConfigurationsController : ControllerBase
 {
     private readonly IAlgorithmConfigurationService _service;
+    private readonly ICurrentUserService _currentUser;
 
-    public AlgorithmConfigurationsController(IAlgorithmConfigurationService service)
+    public AlgorithmConfigurationsController(IAlgorithmConfigurationService service, ICurrentUserService currentUser)
     {
         _service = service;
+        _currentUser = currentUser;
     }
 
     [HttpGet]
     public async Task<ActionResult> GetAll()
     {
-        var result = await _service.GetAllAsync();
+        var result = await _service.GetAllAsync(_currentUser.UserId);
         return result.Map(configs => configs.Select(MapToResponse).ToList()).ToActionResult();
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult> GetById(Guid id)
     {
-        var result = await _service.GetByIdAsync(id);
+        var result = await _service.GetByIdAsync(id, _currentUser.UserId);
         return result.Map(MapToResponse).ToActionResult();
     }
 
@@ -43,7 +47,7 @@ public class AlgorithmConfigurationsController : ControllerBase
             MaxIterations = request.MaxIterations
         };
 
-        var result = await _service.CreateAsync(entity);
+        var result = await _service.CreateAsync(entity, _currentUser.UserId);
         return result.Map(MapToResponse).ToActionResult();
     }
 
@@ -59,14 +63,14 @@ public class AlgorithmConfigurationsController : ControllerBase
             MaxIterations = request.MaxIterations
         };
 
-        var result = await _service.UpdateAsync(id, entity);
+        var result = await _service.UpdateAsync(id, entity, _currentUser.UserId);
         return result.Map(MapToResponse).ToActionResult();
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var result = await _service.DeleteAsync(id);
+        var result = await _service.DeleteAsync(id, _currentUser.UserId);
         return result.ToActionResult();
     }
 

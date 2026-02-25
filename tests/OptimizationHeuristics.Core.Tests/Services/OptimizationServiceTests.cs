@@ -17,6 +17,7 @@ public class OptimizationServiceTests
     private readonly IRunProgressStore _progressStore;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly OptimizationService _service;
+    private readonly Guid _userId = Guid.NewGuid();
 
     public OptimizationServiceTests()
     {
@@ -47,47 +48,50 @@ public class OptimizationServiceTests
         var configId = Guid.NewGuid();
         var problemId = Guid.NewGuid();
 
-        _configRepo.GetByIdAsync(configId).Returns(new AlgorithmConfiguration
-        {
-            Id = configId,
-            Name = "SA",
-            AlgorithmType = AlgorithmType.SimulatedAnnealing,
-            MaxIterations = 20,
-            Parameters = new Dictionary<string, object>
+        _configRepo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>())
+            .Returns(new AlgorithmConfiguration
             {
-                { "initialTemperature", 1000.0 },
-                { "coolingRate", 0.99 }
-            }
-        });
+                Id = configId,
+                Name = "SA",
+                AlgorithmType = AlgorithmType.SimulatedAnnealing,
+                MaxIterations = 20,
+                Parameters = new Dictionary<string, object>
+                {
+                    { "initialTemperature", 1000.0 },
+                    { "coolingRate", 0.99 }
+                }
+            });
 
-        _problemRepo.GetByIdAsync(problemId).Returns(new ProblemDefinition
-        {
-            Id = problemId,
-            Name = "Test",
-            Cities = new List<City>
+        _problemRepo.FindOneAsync(Arg.Any<Expression<Func<ProblemDefinition, bool>>>())
+            .Returns(new ProblemDefinition
             {
-                new City(0, 0.0, 0.0),
-                new City(1, 1.0, 0.0),
-                new City(2, 1.0, 1.0),
-                new City(3, 0.0, 1.0)
-            },
-            CityCount = 4
-        });
+                Id = problemId,
+                Name = "Test",
+                Cities = new List<City>
+                {
+                    new City(0, 0.0, 0.0),
+                    new City(1, 1.0, 0.0),
+                    new City(2, 1.0, 1.0),
+                    new City(3, 0.0, 1.0)
+                },
+                CityCount = 4
+            });
 
-        var result = await _service.RunAsync(configId, problemId);
+        var result = await _service.RunAsync(configId, problemId, _userId);
 
         result.IsSuccess.Should().BeTrue();
-        // The run starts in Running status; background task completes it asynchronously.
         result.Value.Status.Should().Be(RunStatus.Running);
         result.Value.Id.Should().NotBeEmpty();
+        result.Value.UserId.Should().Be(_userId);
     }
 
     [Fact]
     public async Task RunAsync_ConfigNotFound_ReturnsFail()
     {
-        _configRepo.GetByIdAsync(Arg.Any<Guid>()).Returns((AlgorithmConfiguration?)null);
+        _configRepo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>())
+            .Returns((AlgorithmConfiguration?)null);
 
-        var result = await _service.RunAsync(Guid.NewGuid(), Guid.NewGuid());
+        var result = await _service.RunAsync(Guid.NewGuid(), Guid.NewGuid(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }
@@ -95,15 +99,17 @@ public class OptimizationServiceTests
     [Fact]
     public async Task RunAsync_ProblemNotFound_ReturnsFail()
     {
-        _configRepo.GetByIdAsync(Arg.Any<Guid>()).Returns(new AlgorithmConfiguration
-        {
-            Id = Guid.NewGuid(), Name = "Test",
-            AlgorithmType = AlgorithmType.SimulatedAnnealing,
-            MaxIterations = 10, Parameters = new Dictionary<string, object>()
-        });
-        _problemRepo.GetByIdAsync(Arg.Any<Guid>()).Returns((ProblemDefinition?)null);
+        _configRepo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>())
+            .Returns(new AlgorithmConfiguration
+            {
+                Id = Guid.NewGuid(), Name = "Test",
+                AlgorithmType = AlgorithmType.SimulatedAnnealing,
+                MaxIterations = 10, Parameters = new Dictionary<string, object>()
+            });
+        _problemRepo.FindOneAsync(Arg.Any<Expression<Func<ProblemDefinition, bool>>>())
+            .Returns((ProblemDefinition?)null);
 
-        var result = await _service.RunAsync(Guid.NewGuid(), Guid.NewGuid());
+        var result = await _service.RunAsync(Guid.NewGuid(), Guid.NewGuid(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }
@@ -116,9 +122,9 @@ public class OptimizationServiceTests
             Id = Guid.NewGuid(), Status = RunStatus.Completed,
             CreatedAt = DateTime.UtcNow.AddMinutes(-i)
         }).ToList();
-        _runRepo.GetAllAsync().Returns(runs);
+        _runRepo.FindAsync(Arg.Any<Expression<Func<OptimizationRun, bool>>>()).Returns(runs);
 
-        var result = await _service.GetAllAsync(1, 3);
+        var result = await _service.GetAllAsync(_userId, 1, 3);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().HaveCount(3);
@@ -128,9 +134,10 @@ public class OptimizationServiceTests
     public async Task GetByIdAsync_Existing_ReturnsSuccess()
     {
         var id = Guid.NewGuid();
-        _runRepo.GetByIdAsync(id).Returns(new OptimizationRun { Id = id, Status = RunStatus.Completed });
+        _runRepo.FindOneAsync(Arg.Any<Expression<Func<OptimizationRun, bool>>>())
+            .Returns(new OptimizationRun { Id = id, Status = RunStatus.Completed });
 
-        var result = await _service.GetByIdAsync(id);
+        var result = await _service.GetByIdAsync(id, _userId);
 
         result.IsSuccess.Should().BeTrue();
     }
@@ -138,9 +145,10 @@ public class OptimizationServiceTests
     [Fact]
     public async Task GetByIdAsync_NotFound_ReturnsFail()
     {
-        _runRepo.GetByIdAsync(Arg.Any<Guid>()).Returns((OptimizationRun?)null);
+        _runRepo.FindOneAsync(Arg.Any<Expression<Func<OptimizationRun, bool>>>())
+            .Returns((OptimizationRun?)null);
 
-        var result = await _service.GetByIdAsync(Guid.NewGuid());
+        var result = await _service.GetByIdAsync(Guid.NewGuid(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }
@@ -150,9 +158,9 @@ public class OptimizationServiceTests
     {
         var id = Guid.NewGuid();
         var run = new OptimizationRun { Id = id };
-        _runRepo.GetByIdAsync(id).Returns(run);
+        _runRepo.FindOneAsync(Arg.Any<Expression<Func<OptimizationRun, bool>>>()).Returns(run);
 
-        var result = await _service.DeleteAsync(id);
+        var result = await _service.DeleteAsync(id, _userId);
 
         result.IsSuccess.Should().BeTrue();
         _runRepo.Received(1).Delete(run);
@@ -161,9 +169,10 @@ public class OptimizationServiceTests
     [Fact]
     public async Task DeleteAsync_NotFound_ReturnsFail()
     {
-        _runRepo.GetByIdAsync(Arg.Any<Guid>()).Returns((OptimizationRun?)null);
+        _runRepo.FindOneAsync(Arg.Any<Expression<Func<OptimizationRun, bool>>>())
+            .Returns((OptimizationRun?)null);
 
-        var result = await _service.DeleteAsync(Guid.NewGuid());
+        var result = await _service.DeleteAsync(Guid.NewGuid(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }

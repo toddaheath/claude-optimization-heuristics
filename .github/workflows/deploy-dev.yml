@@ -102,6 +102,7 @@ jobs:
       - name: Deploy with Kustomize
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: |
           cd k8s/overlays/dev
           kustomize edit set image opt-sim-api=${{ vars.ACR_LOGIN_SERVER }}/opt-sim-api:${{ needs.build-and-push.outputs.image-tag }}

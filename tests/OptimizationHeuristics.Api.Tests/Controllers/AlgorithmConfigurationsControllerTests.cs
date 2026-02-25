@@ -13,18 +13,22 @@ namespace OptimizationHeuristics.Api.Tests.Controllers;
 public class AlgorithmConfigurationsControllerTests
 {
     private readonly IAlgorithmConfigurationService _service;
+    private readonly ICurrentUserService _currentUser;
     private readonly AlgorithmConfigurationsController _controller;
+    private readonly Guid _userId = Guid.NewGuid();
 
     public AlgorithmConfigurationsControllerTests()
     {
         _service = Substitute.For<IAlgorithmConfigurationService>();
-        _controller = new AlgorithmConfigurationsController(_service);
+        _currentUser = Substitute.For<ICurrentUserService>();
+        _currentUser.UserId.Returns(_userId);
+        _controller = new AlgorithmConfigurationsController(_service, _currentUser);
     }
 
     [Fact]
     public async Task GetAll_ReturnsOk()
     {
-        _service.GetAllAsync().Returns(Result.Ok(new List<AlgorithmConfiguration>
+        _service.GetAllAsync(_userId).Returns(Result.Ok(new List<AlgorithmConfiguration>
         {
             new() { Id = Guid.NewGuid(), Name = "Config", AlgorithmType = AlgorithmType.SimulatedAnnealing,
                      Parameters = new Dictionary<string, object>() }
@@ -38,7 +42,7 @@ public class AlgorithmConfigurationsControllerTests
     [Fact]
     public async Task Create_ReturnsOk()
     {
-        _service.CreateAsync(Arg.Any<AlgorithmConfiguration>()).Returns(ci =>
+        _service.CreateAsync(Arg.Any<AlgorithmConfiguration>(), _userId).Returns(ci =>
         {
             var config = ci.Arg<AlgorithmConfiguration>();
             config.Id = Guid.NewGuid();
@@ -58,7 +62,7 @@ public class AlgorithmConfigurationsControllerTests
     public async Task Update_Existing_ReturnsOk()
     {
         var id = Guid.NewGuid();
-        _service.UpdateAsync(id, Arg.Any<AlgorithmConfiguration>()).Returns(Result.Ok(new AlgorithmConfiguration
+        _service.UpdateAsync(id, Arg.Any<AlgorithmConfiguration>(), _userId).Returns(Result.Ok(new AlgorithmConfiguration
         {
             Id = id, Name = "Updated", AlgorithmType = AlgorithmType.GeneticAlgorithm,
             Parameters = new Dictionary<string, object>(), MaxIterations = 200
@@ -76,7 +80,7 @@ public class AlgorithmConfigurationsControllerTests
     [Fact]
     public async Task Delete_ReturnsNoContent()
     {
-        _service.DeleteAsync(Arg.Any<Guid>()).Returns(Result.Ok());
+        _service.DeleteAsync(Arg.Any<Guid>(), _userId).Returns(Result.Ok());
 
         var result = await _controller.Delete(Guid.NewGuid());
 

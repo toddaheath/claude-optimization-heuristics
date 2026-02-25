@@ -124,3 +124,26 @@ export const DEFAULT_PARAMETERS: Record<AlgorithmType, Record<string, number>> =
 };
 
 export const ALGORITHM_TYPE_VALUES = Object.values(AlgorithmType);
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  refreshTokenExpiry: string;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  displayName: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  displayName: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}

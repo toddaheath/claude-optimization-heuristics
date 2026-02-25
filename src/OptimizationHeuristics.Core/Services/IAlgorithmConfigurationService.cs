@@ -5,9 +5,9 @@ namespace OptimizationHeuristics.Core.Services;
 
 public interface IAlgorithmConfigurationService
 {
-    Task<Result<List<AlgorithmConfiguration>>> GetAllAsync();
-    Task<Result<AlgorithmConfiguration>> GetByIdAsync(Guid id);
-    Task<Result<AlgorithmConfiguration>> CreateAsync(AlgorithmConfiguration config);
-    Task<Result<AlgorithmConfiguration>> UpdateAsync(Guid id, AlgorithmConfiguration config);
-    Task<Result> DeleteAsync(Guid id);
+    Task<Result<List<AlgorithmConfiguration>>> GetAllAsync(Guid userId);
+    Task<Result<AlgorithmConfiguration>> GetByIdAsync(Guid id, Guid userId);
+    Task<Result<AlgorithmConfiguration>> CreateAsync(AlgorithmConfiguration config, Guid userId);
+    Task<Result<AlgorithmConfiguration>> UpdateAsync(Guid id, AlgorithmConfiguration config, Guid userId);
+    Task<Result> DeleteAsync(Guid id, Guid userId);
 }
