@@ -57,6 +57,7 @@ public abstract class AlgorithmBase : IOptimizationAlgorithm
     {
         if (parameters.TryGetValue(key, out var value))
         {
+            if (value is System.Text.Json.JsonElement je) return je.GetDouble();
             return Convert.ToDouble(value);
         }
         return defaultValue;
@@ -66,6 +67,7 @@ public abstract class AlgorithmBase : IOptimizationAlgorithm
     {
         if (parameters.TryGetValue(key, out var value))
         {
+            if (value is System.Text.Json.JsonElement je) return je.GetInt32();
             return Convert.ToInt32(value);
         }
         return defaultValue;
