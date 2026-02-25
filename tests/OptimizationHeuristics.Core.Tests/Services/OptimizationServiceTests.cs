@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using OptimizationHeuristics.Core.Entities;
 using OptimizationHeuristics.Core.Enums;
@@ -39,7 +40,7 @@ public class OptimizationServiceTests
         scope.ServiceProvider.Returns(sp);
         sp.GetService(typeof(IUnitOfWork)).Returns(_unitOfWork);
 
-        _service = new OptimizationService(_unitOfWork, _progressStore, _scopeFactory);
+        _service = new OptimizationService(_unitOfWork, _progressStore, _scopeFactory, Substitute.For<ILogger<OptimizationService>>());
     }
 
     [Fact]

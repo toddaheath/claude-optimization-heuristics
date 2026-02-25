@@ -1,5 +1,6 @@
 using FluentResults;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using OptimizationHeuristics.Core.Algorithms;
 using OptimizationHeuristics.Core.Entities;
 using OptimizationHeuristics.Core.Enums;
@@ -11,12 +12,14 @@ public class OptimizationService : IOptimizationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRunProgressStore _progressStore;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<OptimizationService> _logger;
 
-    public OptimizationService(IUnitOfWork unitOfWork, IRunProgressStore progressStore, IServiceScopeFactory scopeFactory)
+    public OptimizationService(IUnitOfWork unitOfWork, IRunProgressStore progressStore, IServiceScopeFactory scopeFactory, ILogger<OptimizationService> logger)
     {
         _unitOfWork = unitOfWork;
         _progressStore = progressStore;
         _scopeFactory = scopeFactory;
+        _logger = logger;
     }
 
     public async Task<Result<OptimizationRun>> RunAsync(Guid configurationId, Guid problemId, Guid userId)
@@ -85,6 +88,7 @@ public class OptimizationService : IOptimizationService
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Optimization run {RunId} failed with {ExceptionType}: {Message}", runId, ex.GetType().Name, ex.Message);
             run.Status = RunStatus.Failed;
             _progressStore.FailRun(runId, ex.Message);
         }
