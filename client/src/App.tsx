@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage';
 import { HistoryPage } from './pages/HistoryPage';
 import { ConfigurationsPage } from './pages/ConfigurationsPage';
 import { DocumentationPage } from './pages/DocumentationPage';
+import { ComparisonPage } from './pages/ComparisonPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -43,6 +44,9 @@ function Nav() {
       <NavLink to="/history" className={linkClass}>
         History
       </NavLink>
+      <NavLink to="/compare" className={linkClass}>
+        Compare
+      </NavLink>
       <NavLink to="/configurations" className={linkClass}>
         Configurations
       </NavLink>
@@ -80,6 +84,7 @@ export default function App() {
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/history" element={<HistoryPage />} />
+                    <Route path="/compare" element={<ComparisonPage />} />
                     <Route path="/configurations" element={<ConfigurationsPage />} />
                     <Route path="/docs" element={<DocumentationPage />} />
                   </Routes>
