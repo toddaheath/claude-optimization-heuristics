@@ -6,7 +6,7 @@ public class SimulatedAnnealing : AlgorithmBase
 {
     protected override (List<int> BestRoute, double BestDistance) RunAlgorithm(
         IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters,
-        List<IterationResult> history)
+        IList<IterationResult> history, CancellationToken cancellationToken = default)
     {
         var initialTemp = GetParam(parameters, "initialTemperature", 10000.0);
         var coolingRate = GetParam(parameters, "coolingRate", 0.995);
@@ -19,7 +19,7 @@ public class SimulatedAnnealing : AlgorithmBase
         var bestDistance = currentDistance;
         var temperature = initialTemp;
 
-        for (var iteration = 0; iteration < maxIterations && temperature > minTemp; iteration++)
+        for (var iteration = 0; iteration < maxIterations && temperature > minTemp && !cancellationToken.IsCancellationRequested; iteration++)
         {
             var newRoute = TwoOptSwap(currentRoute);
             var newDistance = Route.CalculateTotalDistance(newRoute, cities);

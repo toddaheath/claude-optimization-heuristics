@@ -6,6 +6,8 @@ export function useAnimation() {
     useStore();
   const frameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
+  const historyLenRef = useRef(iterationHistory.length);
+  historyLenRef.current = iterationHistory.length;
 
   useEffect(() => {
     if (!isPlaying || iterationHistory.length === 0) return;
@@ -15,12 +17,14 @@ export function useAnimation() {
     const animate = (timestamp: number) => {
       if (timestamp - lastTimeRef.current >= interval) {
         lastTimeRef.current = timestamp;
-        setCurrentIteration(currentIteration + 1);
-
-        if (currentIteration + 1 >= iterationHistory.length) {
-          setIsPlaying(false);
-          return;
-        }
+        setCurrentIteration((prev: number) => {
+          const next = prev + 1;
+          if (next >= historyLenRef.current) {
+            setIsPlaying(false);
+            return prev;
+          }
+          return next;
+        });
       }
       frameRef.current = requestAnimationFrame(animate);
     };
@@ -30,7 +34,7 @@ export function useAnimation() {
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
     };
-  }, [isPlaying, currentIteration, iterationHistory.length, playbackSpeed, setCurrentIteration, setIsPlaying]);
+  }, [isPlaying, playbackSpeed, setCurrentIteration, setIsPlaying, iterationHistory.length]);
 
   return {
     currentFrame: iterationHistory[currentIteration] ?? null,

@@ -30,7 +30,7 @@ public class ProblemDefinitionIntegrationTests : IClassFixture<CustomWebApplicat
             });
 
         var createResponse = await _client.PostAsJsonAsync("/api/v1/problem-definitions", request);
-        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var created = await createResponse.Content.ReadFromJsonAsync<ApiResponse<ProblemDefinitionResponse>>();
         created!.Success.Should().BeTrue();

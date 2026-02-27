@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using OptimizationHeuristics.Api.Controllers;
 using OptimizationHeuristics.Api.DTOs;
+using OptimizationHeuristics.Core.Errors;
 using OptimizationHeuristics.Core.Services;
 
 namespace OptimizationHeuristics.Api.Tests.Controllers;
@@ -58,7 +59,7 @@ public class AuthControllerTests
     public async Task Login_InvalidCredentials_ReturnsUnauthorized()
     {
         _authService.LoginAsync(Arg.Any<string>(), Arg.Any<string>())
-            .Returns(Result.Fail<AuthTokens>("Invalid email or password"));
+            .Returns(Result.Fail<AuthTokens>(new UnauthorizedError("Invalid email or password")));
 
         var result = await _controller.Login(new LoginRequest("test@example.com", "wrong"));
 
@@ -81,7 +82,7 @@ public class AuthControllerTests
     public async Task Refresh_InvalidToken_ReturnsUnauthorized()
     {
         _authService.RefreshAsync(Arg.Any<string>())
-            .Returns(Result.Fail<AuthTokens>("Token is invalid or expired"));
+            .Returns(Result.Fail<AuthTokens>(new UnauthorizedError("Token is invalid or expired")));
 
         var result = await _controller.Refresh(new RefreshRequest("bad-token"));
 

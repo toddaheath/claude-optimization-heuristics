@@ -26,13 +26,13 @@ public class OptimizationRunsController : ControllerBase
     {
         var result = await _service.RunAsync(
             request.AlgorithmConfigurationId, request.ProblemDefinitionId, _currentUser.UserId);
-        return result.Map(MapToResponse).ToActionResult();
+        return result.Map(MapToResponse).ToCreatedResult();
     }
 
     [HttpGet("{id:guid}/progress")]
     public async Task<ActionResult> GetProgress(Guid id)
     {
-        var result = await _service.GetProgressAsync(id);
+        var result = await _service.GetProgressAsync(id, _currentUser.UserId);
         return result.Map(snap => new RunProgressResponse(
             snap.RunId, snap.Status, snap.IterationHistory,
             snap.BestDistance, snap.ExecutionTimeMs, snap.ErrorMessage
@@ -42,6 +42,8 @@ public class OptimizationRunsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
         var result = await _service.GetAllAsync(_currentUser.UserId, page, pageSize);
         return result.Map(runs => runs.Select(MapToResponse).ToList()).ToActionResult();
     }

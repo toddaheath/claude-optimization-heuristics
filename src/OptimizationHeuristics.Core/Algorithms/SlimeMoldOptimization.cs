@@ -6,7 +6,7 @@ public class SlimeMoldOptimization : AlgorithmBase
 {
     protected override (List<int> BestRoute, double BestDistance) RunAlgorithm(
         IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters,
-        List<IterationResult> history)
+        IList<IterationResult> history, CancellationToken cancellationToken = default)
     {
         var populationSize = GetIntParam(parameters, "populationSize", 30);
         var z = GetParam(parameters, "z", 0.03);
@@ -25,7 +25,7 @@ public class SlimeMoldOptimization : AlgorithmBase
         var bestRoute = new List<int>(population[bestIdx]);
         var bestDistance = fitness[bestIdx];
 
-        for (var iteration = 0; iteration < maxIterations; iteration++)
+        for (var iteration = 0; iteration < maxIterations && !cancellationToken.IsCancellationRequested; iteration++)
         {
             var sortedIndices = Enumerable.Range(0, populationSize)
                 .OrderBy(i => fitness[i]).ToArray();
@@ -110,11 +110,11 @@ public class SlimeMoldOptimization : AlgorithmBase
         var rank = Array.IndexOf(sortedIndices, currentIdx);
         if (rank < populationSize / 2)
         {
-            return 1.0 + Rng.NextDouble() * Math.Log10((bestFitness - currentFitness) / range + 1);
+            return 1.0 + Rng.NextDouble() * Math.Log10((currentFitness - bestFitness) / range + 1);
         }
         else
         {
-            return 1.0 - Rng.NextDouble() * Math.Log10((bestFitness - currentFitness) / range + 1);
+            return 1.0 - Rng.NextDouble() * Math.Log10((currentFitness - bestFitness) / range + 1);
         }
     }
 

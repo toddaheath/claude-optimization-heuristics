@@ -23,7 +23,7 @@ interface AppState {
   isPlaying: boolean;
   playbackSpeed: number;
   setIterationHistory: (history: IterationResult[]) => void;
-  setCurrentIteration: (iteration: number) => void;
+  setCurrentIteration: (iteration: number | ((prev: number) => number)) => void;
   setIsPlaying: (playing: boolean) => void;
   setPlaybackSpeed: (speed: number) => void;
 
@@ -65,7 +65,10 @@ export const useStore = create<AppState>()(
       isPlaying: false,
       playbackSpeed: 1,
       setIterationHistory: (history) => set({ iterationHistory: history }),
-      setCurrentIteration: (iteration) => set({ currentIteration: iteration }),
+      setCurrentIteration: (iteration) =>
+        set((state) => ({
+          currentIteration: typeof iteration === 'function' ? iteration(state.currentIteration) : iteration,
+        })),
       setIsPlaying: (playing) => set({ isPlaying: playing }),
       setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
 

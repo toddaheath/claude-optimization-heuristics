@@ -1,7 +1,9 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OptimizationHeuristics.Api.Middleware;
@@ -54,6 +56,12 @@ builder.Services.AddScoped<IAuthService>(sp => new AuthService(
 // JWT authentication
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var secretKeyBase64 = jwtSection["SecretKey"] ?? Convert.ToBase64String(new byte[32]);
+if (!builder.Environment.IsDevelopment())
+{
+    var keyBytes = Convert.FromBase64String(secretKeyBase64);
+    if (keyBytes.All(b => b == 0) || keyBytes.Length < 32)
+        throw new InvalidOperationException("JWT SecretKey must be configured with a strong key (>= 32 bytes) in non-Development environments.");
+}
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -70,6 +78,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("auth", limiter =>
+    {
+        limiter.PermitLimit = 10;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProblemDefinitionValidator>();
@@ -116,11 +135,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+var progressStore = app.Services.GetRequiredService<IRunProgressStore>();
+lifetime.ApplicationStopping.Register(() => progressStore.CancelAll());
+
 app.MapGet("/health", () => Results.Ok(new { Status = "Healthy", Timestamp = DateTime.UtcNow }));
 
 app.MapGet("/health/live", () =>

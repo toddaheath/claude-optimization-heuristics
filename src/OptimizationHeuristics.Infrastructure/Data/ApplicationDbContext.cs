@@ -97,7 +97,7 @@ public class ApplicationDbContext : DbContext
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, JsonOptions) ?? new Dictionary<string, object>(),
                     new ValueComparer<Dictionary<string, object>>(
                         (c1, c2) => JsonSerializer.Serialize(c1, JsonOptions) == JsonSerializer.Serialize(c2, JsonOptions),
-                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => JsonSerializer.Serialize(c, JsonOptions).GetHashCode(),
                         c => JsonSerializer.Deserialize<Dictionary<string, object>>(JsonSerializer.Serialize(c, JsonOptions), JsonOptions)!));
             entity.Property(e => e.MaxIterations);
             entity.Property(e => e.CreatedAt);

@@ -20,4 +20,7 @@ public interface IRunProgressStore
     void FailRun(Guid runId, string errorMessage);
     RunProgressSnapshot? GetSnapshot(Guid runId);
     void CleanUp(Guid runId);
+    CancellationToken GetCancellationToken(Guid runId);
+    void CancelRun(Guid runId);
+    void CancelAll();
 }

@@ -14,6 +14,7 @@ public class RunProgressStore : IRunProgressStore
         public long ExecutionTimeMs;
         public string? ErrorMessage;
         public readonly object Lock = new();
+        public readonly CancellationTokenSource Cts = new();
     }
 
     private readonly ConcurrentDictionary<Guid, RunState> _store = new();
@@ -64,5 +65,24 @@ public class RunProgressStore : IRunProgressStore
         }
     }
 
-    public void CleanUp(Guid runId) => _store.TryRemove(runId, out _);
+    public void CleanUp(Guid runId)
+    {
+        if (_store.TryRemove(runId, out var state))
+            state.Cts.Dispose();
+    }
+
+    public CancellationToken GetCancellationToken(Guid runId) =>
+        _store.TryGetValue(runId, out var state) ? state.Cts.Token : CancellationToken.None;
+
+    public void CancelRun(Guid runId)
+    {
+        if (_store.TryGetValue(runId, out var state))
+            state.Cts.Cancel();
+    }
+
+    public void CancelAll()
+    {
+        foreach (var state in _store.Values)
+            state.Cts.Cancel();
+    }
 }

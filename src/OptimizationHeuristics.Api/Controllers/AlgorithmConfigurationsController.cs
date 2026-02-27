@@ -48,7 +48,7 @@ public class AlgorithmConfigurationsController : ControllerBase
         };
 
         var result = await _service.CreateAsync(entity, _currentUser.UserId);
-        return result.Map(MapToResponse).ToActionResult();
+        return result.Map(MapToResponse).ToCreatedResult();
     }
 
     [HttpPut("{id:guid}")]

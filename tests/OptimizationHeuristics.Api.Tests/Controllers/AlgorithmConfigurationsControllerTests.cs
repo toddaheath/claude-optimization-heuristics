@@ -55,7 +55,7 @@ public class AlgorithmConfigurationsControllerTests
 
         var result = await _controller.Create(request);
 
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(201);
     }
 
     [Fact]

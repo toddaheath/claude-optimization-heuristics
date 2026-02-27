@@ -6,7 +6,7 @@ public class AntColonyOptimization : AlgorithmBase
 {
     protected override (List<int> BestRoute, double BestDistance) RunAlgorithm(
         IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters,
-        List<IterationResult> history)
+        IList<IterationResult> history, CancellationToken cancellationToken = default)
     {
         var antCount = GetIntParam(parameters, "antCount", 20);
         var alpha = GetParam(parameters, "alpha", 1.0);
@@ -22,7 +22,7 @@ public class AntColonyOptimization : AlgorithmBase
         var bestRoute = GenerateRandomRoute(n, Rng);
         var bestDistance = Route.CalculateTotalDistance(bestRoute, cities);
 
-        for (var iteration = 0; iteration < maxIterations; iteration++)
+        for (var iteration = 0; iteration < maxIterations && !cancellationToken.IsCancellationRequested; iteration++)
         {
             var iterationBestRoute = bestRoute;
             var iterationBestDistance = bestDistance;

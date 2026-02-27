@@ -1,5 +1,6 @@
 using FluentResults;
 using OptimizationHeuristics.Core.Entities;
+using OptimizationHeuristics.Core.Errors;
 
 namespace OptimizationHeuristics.Core.Services;
 
@@ -22,7 +23,7 @@ public class ProblemDefinitionService : IProblemDefinitionService
     {
         var problem = await _unitOfWork.Repository<ProblemDefinition>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (problem is null)
-            return Result.Fail<ProblemDefinition>("Problem definition not found");
+            return Result.Fail<ProblemDefinition>(new NotFoundError("Problem definition not found"));
         return Result.Ok(problem);
     }
 
@@ -40,7 +41,7 @@ public class ProblemDefinitionService : IProblemDefinitionService
     {
         var problem = await _unitOfWork.Repository<ProblemDefinition>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (problem is null)
-            return Result.Fail("Problem definition not found");
+            return Result.Fail(new NotFoundError("Problem definition not found"));
 
         _unitOfWork.Repository<ProblemDefinition>().Delete(problem);
         await _unitOfWork.SaveChangesAsync();

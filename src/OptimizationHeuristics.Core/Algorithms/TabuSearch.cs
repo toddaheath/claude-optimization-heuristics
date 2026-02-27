@@ -6,7 +6,7 @@ public class TabuSearch : AlgorithmBase
 {
     protected override (List<int> BestRoute, double BestDistance) RunAlgorithm(
         IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters,
-        List<IterationResult> history)
+        IList<IterationResult> history, CancellationToken cancellationToken = default)
     {
         var tabuTenure = GetIntParam(parameters, "tabuTenure", 10);
         var neighborhoodSize = GetIntParam(parameters, "neighborhoodSize", 50);
@@ -20,7 +20,7 @@ public class TabuSearch : AlgorithmBase
         var tabuList = new Queue<(int, int)>();
         var tabuSet = new HashSet<(int, int)>();
 
-        for (var iteration = 0; iteration < maxIterations; iteration++)
+        for (var iteration = 0; iteration < maxIterations && !cancellationToken.IsCancellationRequested; iteration++)
         {
             List<int>? bestNeighbor = null;
             var bestNeighborDistance = double.MaxValue;
