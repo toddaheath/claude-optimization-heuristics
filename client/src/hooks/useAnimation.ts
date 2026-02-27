@@ -7,7 +7,10 @@ export function useAnimation() {
   const frameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const historyLenRef = useRef(iterationHistory.length);
-  historyLenRef.current = iterationHistory.length;
+
+  useEffect(() => {
+    historyLenRef.current = iterationHistory.length;
+  }, [iterationHistory.length]);
 
   useEffect(() => {
     if (!isPlaying || iterationHistory.length === 0) return;
