@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using OptimizationHeuristics.Api.DTOs;
 using OptimizationHeuristics.Api.Extensions;
 using OptimizationHeuristics.Core.Services;
@@ -8,6 +9,7 @@ namespace OptimizationHeuristics.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/auth")]
+[EnableRateLimiting("auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;

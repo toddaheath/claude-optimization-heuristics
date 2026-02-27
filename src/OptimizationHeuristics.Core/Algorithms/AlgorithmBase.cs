@@ -8,39 +8,40 @@ public abstract class AlgorithmBase : IOptimizationAlgorithm
     protected Random Rng = new();
 
     public OptimizationResult Solve(IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters,
-        Action<IterationResult>? onIteration = null)
+        Action<IterationResult>? onIteration = null, CancellationToken cancellationToken = default)
     {
         var sw = Stopwatch.StartNew();
-        List<IterationResult> history = onIteration != null
+        IList<IterationResult> history = onIteration != null
             ? new ObservableList(onIteration)
             : new List<IterationResult>();
 
-        var (bestRoute, bestDistance) = RunAlgorithm(cities, maxIterations, parameters, history);
+        var (bestRoute, bestDistance) = RunAlgorithm(cities, maxIterations, parameters, history, cancellationToken);
 
         sw.Stop();
         return new OptimizationResult
         {
             BestDistance = bestDistance,
             BestRoute = bestRoute,
-            IterationHistory = history,
+            IterationHistory = history.ToList(),
             TotalIterations = history.Count,
             ExecutionTimeMs = sw.ElapsedMilliseconds
         };
     }
 
-    // Wraps a List<IterationResult> to fire a callback whenever an item is added.
-    private sealed class ObservableList : List<IterationResult>
+    // Wraps a List<IterationResult> so the callback fires on every Add via interface dispatch.
+    private sealed class ObservableList : List<IterationResult>, IList<IterationResult>
     {
         private readonly Action<IterationResult> _callback;
         public ObservableList(Action<IterationResult> callback) => _callback = callback;
-        public new void Add(IterationResult item) { base.Add(item); _callback(item); }
+        void ICollection<IterationResult>.Add(IterationResult item) { base.Add(item); _callback(item); }
     }
 
     protected abstract (List<int> BestRoute, double BestDistance) RunAlgorithm(
         IReadOnlyList<City> cities,
         int maxIterations,
         Dictionary<string, object> parameters,
-        List<IterationResult> history);
+        IList<IterationResult> history,
+        CancellationToken cancellationToken = default);
 
     protected static List<int> GenerateRandomRoute(int cityCount, Random rng)
     {

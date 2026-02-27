@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlgorithmType, DEFAULT_PARAMETERS, RunStatus } from '../types';
 import type { ProblemDefinition, City } from '../types';
@@ -26,6 +26,7 @@ export function ConfigurationPanel() {
     selectedProblemId,
     setSelectedProblemId,
     setInitialRoute,
+    isRunning,
     setIsRunning,
     setIterationHistory,
     setCurrentIteration,
@@ -66,6 +67,8 @@ export function ConfigurationPanel() {
       pollTimerRef.current = null;
     }
   };
+
+  useEffect(() => () => stopPolling(), []);
 
   const startRun = async () => {
     if (!selectedProblemId) return;
@@ -229,7 +232,7 @@ export function ConfigurationPanel() {
   };
 
   const isGenerating = createProblem.isPending;
-  const isRunActive = isStartingRun;
+  const isRunActive = isStartingRun || isRunning;
 
   return (
     <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
@@ -237,8 +240,9 @@ export function ConfigurationPanel() {
 
       {/* Problem selector */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Problem</label>
+        <label htmlFor="problem-select" className="block text-sm font-medium text-gray-700 mb-1">Problem</label>
         <select
+          id="problem-select"
           value={selectedProblemId}
           onChange={(e) => setSelectedProblemId(e.target.value)}
           className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
@@ -254,8 +258,9 @@ export function ConfigurationPanel() {
         {/* City count + layout generators */}
         <div className="mt-2 space-y-1.5">
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-600 shrink-0">Cities:</label>
+            <label htmlFor="city-count" className="text-xs text-gray-600 shrink-0">Cities:</label>
             <input
+              id="city-count"
               type="number"
               min={3}
               max={200}
@@ -278,8 +283,9 @@ export function ConfigurationPanel() {
       <AlgorithmSelector value={algorithmType} onChange={handleAlgorithmChange} />
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Max Iterations</label>
+        <label htmlFor="max-iterations" className="block text-sm font-medium text-gray-700 mb-1">Max Iterations</label>
         <input
+          id="max-iterations"
           type="number"
           min={1}
           max={100000}

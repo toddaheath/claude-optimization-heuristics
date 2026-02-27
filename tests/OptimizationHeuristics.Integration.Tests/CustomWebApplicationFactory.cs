@@ -18,7 +18,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private const string TestIssuer = "TestIssuer";
     private const string TestAudience = "TestAudience";
 
-    private readonly string _dbName = "IntegrationTestDb";
+    private readonly string _dbName = $"IntegrationTestDb_{Guid.NewGuid()}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

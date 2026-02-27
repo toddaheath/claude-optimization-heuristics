@@ -23,6 +23,13 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task<List<T>> FindAsync(Expression<Func<T, bool>> predicate)
         => await DbSet.Where(predicate).ToListAsync();
 
+    public async Task<List<T>> FindPagedAsync<TKey>(Expression<Func<T, bool>> predicate, Expression<Func<T, TKey>> orderBy, int page, int pageSize, bool descending = false)
+    {
+        var query = DbSet.Where(predicate);
+        query = descending ? query.OrderByDescending(orderBy) : query.OrderBy(orderBy);
+        return await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+    }
+
     public async Task<T?> FindOneAsync(Expression<Func<T, bool>> predicate)
         => await DbSet.FirstOrDefaultAsync(predicate);
 

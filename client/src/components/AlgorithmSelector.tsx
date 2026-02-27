@@ -8,8 +8,9 @@ interface Props {
 export function AlgorithmSelector({ value, onChange }: Props) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Algorithm</label>
+      <label htmlFor="algorithm-select" className="block text-sm font-medium text-gray-700 mb-1">Algorithm</label>
       <select
+        id="algorithm-select"
         value={value}
         onChange={(e) => onChange(e.target.value as AlgorithmType)}
         className="w-full px-3 py-2 border rounded-lg text-sm bg-white"

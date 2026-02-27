@@ -1,5 +1,6 @@
 using FluentResults;
 using OptimizationHeuristics.Core.Entities;
+using OptimizationHeuristics.Core.Errors;
 
 namespace OptimizationHeuristics.Core.Services;
 
@@ -49,7 +50,7 @@ public class AuthService : IAuthService
         var normalizedEmail = email.ToLowerInvariant();
         var user = await _unitOfWork.Repository<User>().FindOneAsync(x => x.Email == normalizedEmail && x.IsActive);
         if (user is null || !_passwordHasher.Verify(password, user.PasswordHash))
-            return Result.Fail<AuthTokens>("Invalid email or password");
+            return Result.Fail<AuthTokens>(new UnauthorizedError("Invalid email or password"));
 
         return await IssueTokensAsync(user);
     }
@@ -58,7 +59,7 @@ public class AuthService : IAuthService
     {
         var token = await _unitOfWork.Repository<RefreshToken>().FindOneAsync(x => x.Token == refreshToken);
         if (token is null || token.IsRevoked || token.ExpiresAt < DateTime.UtcNow)
-            return Result.Fail<AuthTokens>("Token is invalid or expired");
+            return Result.Fail<AuthTokens>(new UnauthorizedError("Token is invalid or expired"));
 
         if (token.ReplacedByToken is not null)
         {
@@ -72,12 +73,12 @@ public class AuthService : IAuthService
                 _unitOfWork.Repository<RefreshToken>().Update(t);
             }
             await _unitOfWork.SaveChangesAsync();
-            return Result.Fail<AuthTokens>("Token reuse detected; all sessions revoked");
+            return Result.Fail<AuthTokens>(new UnauthorizedError("Token reuse detected; all sessions revoked"));
         }
 
         var user = await _unitOfWork.Repository<User>().FindOneAsync(x => x.Id == token.UserId && x.IsActive);
         if (user is null)
-            return Result.Fail<AuthTokens>("Token is invalid or expired");
+            return Result.Fail<AuthTokens>(new UnauthorizedError("Token is invalid or expired"));
 
         var newRefreshTokenValue = _tokenService.GenerateRefreshToken();
         token.IsRevoked = true;

@@ -6,6 +6,7 @@ using OptimizationHeuristics.Api.Controllers;
 using OptimizationHeuristics.Api.DTOs;
 using OptimizationHeuristics.Core.Entities;
 using OptimizationHeuristics.Core.Enums;
+using OptimizationHeuristics.Core.Errors;
 using OptimizationHeuristics.Core.Services;
 
 namespace OptimizationHeuristics.Api.Tests.Controllers;
@@ -37,7 +38,7 @@ public class OptimizationRunsControllerTests
 
         var result = await _controller.Run(new RunOptimizationRequest(Guid.NewGuid(), Guid.NewGuid()));
 
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(201);
     }
 
     [Fact]
@@ -67,7 +68,7 @@ public class OptimizationRunsControllerTests
     [Fact]
     public async Task GetById_NotFound_ReturnsNotFound()
     {
-        _service.GetByIdAsync(Arg.Any<Guid>(), _userId).Returns(Result.Fail<OptimizationRun>("not found"));
+        _service.GetByIdAsync(Arg.Any<Guid>(), _userId).Returns(Result.Fail<OptimizationRun>(new NotFoundError("not found")));
 
         var result = await _controller.GetById(Guid.NewGuid());
 
@@ -82,5 +83,28 @@ public class OptimizationRunsControllerTests
         var result = await _controller.Delete(Guid.NewGuid());
 
         result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public async Task GetProgress_ValidId_ReturnsOk()
+    {
+        var runId = Guid.NewGuid();
+        var snapshot = new RunProgressSnapshot(runId, RunStatus.Running, [], null, 0, null);
+        _service.GetProgressAsync(runId, _userId).Returns(Result.Ok(snapshot));
+
+        var result = await _controller.GetProgress(runId);
+
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetProgress_NotFound_ReturnsNotFound()
+    {
+        _service.GetProgressAsync(Arg.Any<Guid>(), _userId)
+            .Returns(Result.Fail<RunProgressSnapshot>(new NotFoundError("not found")));
+
+        var result = await _controller.GetProgress(Guid.NewGuid());
+
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 }

@@ -6,7 +6,7 @@ public class ParticleSwarmOptimization : AlgorithmBase
 {
     protected override (List<int> BestRoute, double BestDistance) RunAlgorithm(
         IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters,
-        List<IterationResult> history)
+        IList<IterationResult> history, CancellationToken cancellationToken = default)
     {
         var swarmSize = GetIntParam(parameters, "swarmSize", 30);
         var cognitiveWeight = GetParam(parameters, "cognitiveWeight", 2.0);
@@ -31,7 +31,7 @@ public class ParticleSwarmOptimization : AlgorithmBase
         var globalBest = new List<int>(personalBest[globalBestIdx]);
         var globalBestDistance = personalBestDistance[globalBestIdx];
 
-        for (var iteration = 0; iteration < maxIterations; iteration++)
+        for (var iteration = 0; iteration < maxIterations && !cancellationToken.IsCancellationRequested; iteration++)
         {
             var iterationBestDistance = double.MaxValue;
             for (var i = 0; i < swarmSize; i++)
@@ -48,6 +48,10 @@ public class ParticleSwarmOptimization : AlgorithmBase
                 foreach (var swap in globalSwaps)
                     if (Rng.NextDouble() < socialWeight / (cognitiveWeight + socialWeight))
                         newVelocity.Add(swap);
+
+                var maxSwaps = n / 2;
+                if (newVelocity.Count > maxSwaps)
+                    newVelocity = newVelocity.Take(maxSwaps).ToList();
 
                 velocities[i] = newVelocity;
 

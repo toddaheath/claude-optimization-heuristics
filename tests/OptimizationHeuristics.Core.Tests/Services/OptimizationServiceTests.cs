@@ -118,12 +118,15 @@ public class OptimizationServiceTests
     [Fact]
     public async Task GetAllAsync_ReturnsPaginatedRuns()
     {
-        var runs = Enumerable.Range(0, 5).Select(i => new OptimizationRun
+        var runs = Enumerable.Range(0, 3).Select(i => new OptimizationRun
         {
             Id = Guid.NewGuid(), Status = RunStatus.Completed,
             CreatedAt = DateTime.UtcNow.AddMinutes(-i)
         }).ToList();
-        _runRepo.FindAsync(Arg.Any<Expression<Func<OptimizationRun, bool>>>()).Returns(runs);
+        _runRepo.FindPagedAsync(
+            Arg.Any<Expression<Func<OptimizationRun, bool>>>(),
+            Arg.Any<Expression<Func<OptimizationRun, DateTime>>>(),
+            1, 3, true).Returns(runs);
 
         var result = await _service.GetAllAsync(_userId, 1, 3);
 
@@ -181,9 +184,11 @@ public class OptimizationServiceTests
     [Fact]
     public async Task GetProgressAsync_UnknownRun_ReturnsFail()
     {
+        _runRepo.FindOneAsync(Arg.Any<System.Linq.Expressions.Expression<Func<OptimizationRun, bool>>>())
+            .Returns((OptimizationRun?)null);
         _progressStore.GetSnapshot(Arg.Any<Guid>()).Returns((RunProgressSnapshot?)null);
 
-        var result = await _service.GetProgressAsync(Guid.NewGuid());
+        var result = await _service.GetProgressAsync(Guid.NewGuid(), _userId);
 
         result.IsFailed.Should().BeTrue();
     }
@@ -192,10 +197,13 @@ public class OptimizationServiceTests
     public async Task GetProgressAsync_KnownRun_ReturnsSnapshot()
     {
         var runId = Guid.NewGuid();
+        var run = new OptimizationRun { Id = runId, UserId = _userId, Status = RunStatus.Running };
+        _runRepo.FindOneAsync(Arg.Any<System.Linq.Expressions.Expression<Func<OptimizationRun, bool>>>())
+            .Returns(run);
         var snapshot = new RunProgressSnapshot(runId, RunStatus.Running, [], null, 0, null);
         _progressStore.GetSnapshot(runId).Returns(snapshot);
 
-        var result = await _service.GetProgressAsync(runId);
+        var result = await _service.GetProgressAsync(runId, _userId);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.RunId.Should().Be(runId);

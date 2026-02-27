@@ -30,8 +30,9 @@ export function ParameterForm({ parameters, onChange }: Props) {
       <label className="block text-sm font-medium text-gray-700">Parameters</label>
       {Object.entries(parameters).map(([key, value]) => (
         <div key={key}>
-          <label className="block text-xs text-gray-600 mb-0.5">{PARAM_LABELS[key] ?? key}</label>
+          <label htmlFor={`param-${key}`} className="block text-xs text-gray-600 mb-0.5">{PARAM_LABELS[key] ?? key}</label>
           <input
+            id={`param-${key}`}
             type="number"
             step="any"
             value={value}

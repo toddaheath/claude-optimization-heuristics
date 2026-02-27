@@ -20,7 +20,9 @@ function unwrap<T>(response: { data: ApiResponse<T> }): T {
   return response.data.data!;
 }
 
-// --- Request interceptor: attach access token ---
+// Token storage trade-off: Tokens are stored in Zustand (persisted to localStorage) for
+// SPA convenience. Moving to httpOnly cookies would improve XSS resilience but requires
+// backend changes (cookie-based auth flow, CSRF protection). Acceptable for current scope.
 api.interceptors.request.use((config) => {
   const { accessToken } = useStore.getState();
   if (accessToken) {

@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import type { City, IterationResult } from '../types';
 
 interface Props {
@@ -17,10 +17,28 @@ export function TspCanvas({
   initialRoute,
   isComplete = false,
   isRunning = false,
-  width = 600,
-  height = 500,
+  width: maxWidth = 700,
+  height: maxHeight = 500,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(maxWidth);
+
+  const onResize = useCallback((entries: ResizeObserverEntry[]) => {
+    const w = entries[0]?.contentRect.width;
+    if (w) setContainerWidth(w);
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(onResize);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [onResize]);
+
+  const width = Math.min(containerWidth, maxWidth);
+  const height = Math.round(width * (maxHeight / maxWidth));
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -169,11 +187,15 @@ export function TspCanvas({
   }, [cities, currentFrame, initialRoute, isComplete, isRunning, width, height]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
-      className="border border-gray-300 rounded-lg bg-white"
-    />
+    <div ref={containerRef} className="max-w-full">
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        role="img"
+        aria-label="TSP route visualization"
+        className="border border-gray-300 rounded-lg bg-white max-w-full"
+      />
+    </div>
   );
 }

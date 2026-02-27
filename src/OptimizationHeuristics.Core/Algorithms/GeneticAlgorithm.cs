@@ -6,7 +6,7 @@ public class GeneticAlgorithm : AlgorithmBase
 {
     protected override (List<int> BestRoute, double BestDistance) RunAlgorithm(
         IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters,
-        List<IterationResult> history)
+        IList<IterationResult> history, CancellationToken cancellationToken = default)
     {
         var populationSize = GetIntParam(parameters, "populationSize", 50);
         var mutationRate = GetParam(parameters, "mutationRate", 0.02);
@@ -21,7 +21,7 @@ public class GeneticAlgorithm : AlgorithmBase
         var bestRoute = new List<int>(population[bestIdx]);
         var bestDistance = fitness[bestIdx];
 
-        for (var iteration = 0; iteration < maxIterations; iteration++)
+        for (var iteration = 0; iteration < maxIterations && !cancellationToken.IsCancellationRequested; iteration++)
         {
             var newPopulation = new List<List<int>>(populationSize);
 

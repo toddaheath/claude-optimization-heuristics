@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { runApi, configApi } from '../api/client';
 import { useStore } from '../store/useStore';
@@ -13,6 +13,17 @@ interface RunDetailsModalProps {
 }
 
 function RunDetailsModal({ run, config, onClose }: RunDetailsModalProps) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const initialDistance = run.iterationHistory?.[0]?.bestDistance;
   const finalDistance = run.bestDistance;
   const improvementPct =
@@ -35,12 +46,15 @@ function RunDetailsModal({ run, config, onClose }: RunDetailsModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="run-details-title"
         className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Run Details</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+          <h2 id="run-details-title" className="text-lg font-bold">Run Details</h2>
+          <button ref={closeRef} onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
         </div>
 
         <div className="divide-y divide-gray-100">
@@ -118,10 +132,14 @@ export function HistoryPage() {
   const navigate = useNavigate();
 
   const [detailsRun, setDetailsRun] = useState<OptimizationRun | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
 
   const { data: runs, isLoading } = useQuery({
-    queryKey: ['runs'],
-    queryFn: () => runApi.getAll(),
+    queryKey: ['runs', page],
+    queryFn: () => runApi.getAll(page, pageSize),
   });
 
   const { data: configs } = useQuery({
@@ -135,15 +153,27 @@ export function HistoryPage() {
   });
 
   const loadRun = async (id: string) => {
-    const run = await runApi.getById(id);
-    setCurrentRun(run);
-    navigate('/');
+    try {
+      setError(null);
+      const run = await runApi.getById(id);
+      setCurrentRun(run);
+      navigate('/');
+    } catch {
+      setError('Failed to load run. Please try again.');
+    }
   };
 
   const openDetails = async (run: OptimizationRun) => {
-    // Fetch the full run (with iterationHistory) for the details view
-    const full = await runApi.getById(run.id);
-    setDetailsRun(full);
+    try {
+      setError(null);
+      setDetailsLoading(run.id);
+      const full = await runApi.getById(run.id);
+      setDetailsRun(full);
+    } catch {
+      setError('Failed to load run details. Please try again.');
+    } finally {
+      setDetailsLoading(null);
+    }
   };
 
   const configMap = new Map<string, AlgorithmConfiguration>(
@@ -153,6 +183,12 @@ export function HistoryPage() {
   return (
     <div className="max-w-screen-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Run History</h1>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          {error}
+        </div>
+      )}
 
       {isLoading && <p className="text-gray-500">Loading...</p>}
 
@@ -196,9 +232,9 @@ export function HistoryPage() {
                       : `${(run.executionTimeMs / 1000).toFixed(1)} s`}
                   </td>
                   <td className="p-3 border-b space-x-3">
-                    <button onClick={() => openDetails(run)} className="text-gray-600 hover:text-gray-900 text-sm">Details</button>
+                    <button onClick={() => openDetails(run)} disabled={detailsLoading === run.id} className="text-gray-600 hover:text-gray-900 text-sm disabled:opacity-50">{detailsLoading === run.id ? 'Loading…' : 'Details'}</button>
                     <button onClick={() => loadRun(run.id)} className="text-blue-600 hover:text-blue-800 text-sm">Replay</button>
-                    <button onClick={() => deleteRun.mutate(run.id)} className="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                    <button onClick={() => { if (window.confirm('Are you sure you want to delete this run?')) deleteRun.mutate(run.id); }} className="text-red-600 hover:text-red-800 text-sm">Delete</button>
                   </td>
                 </tr>
               );
@@ -207,7 +243,27 @@ export function HistoryPage() {
         </table>
       </div>
 
-      {runs?.length === 0 && (
+      {runs && runs.length > 0 && (
+        <div className="flex items-center justify-between mt-4">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600">Page {page}</span>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={runs.length < pageSize}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      {runs?.length === 0 && page === 1 && (
         <p className="text-gray-500 mt-4">No runs yet. Go to Home to run an optimization.</p>
       )}
 

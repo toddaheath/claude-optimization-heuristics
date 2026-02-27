@@ -1,5 +1,6 @@
 using FluentResults;
 using OptimizationHeuristics.Core.Entities;
+using OptimizationHeuristics.Core.Errors;
 
 namespace OptimizationHeuristics.Core.Services;
 
@@ -22,7 +23,7 @@ public class AlgorithmConfigurationService : IAlgorithmConfigurationService
     {
         var config = await _unitOfWork.Repository<AlgorithmConfiguration>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (config is null)
-            return Result.Fail<AlgorithmConfiguration>("Algorithm configuration not found");
+            return Result.Fail<AlgorithmConfiguration>(new NotFoundError("Algorithm configuration not found"));
         return Result.Ok(config);
     }
 
@@ -39,7 +40,7 @@ public class AlgorithmConfigurationService : IAlgorithmConfigurationService
     {
         var existing = await _unitOfWork.Repository<AlgorithmConfiguration>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (existing is null)
-            return Result.Fail<AlgorithmConfiguration>("Algorithm configuration not found");
+            return Result.Fail<AlgorithmConfiguration>(new NotFoundError("Algorithm configuration not found"));
 
         existing.Name = config.Name;
         existing.Description = config.Description;
@@ -56,7 +57,7 @@ public class AlgorithmConfigurationService : IAlgorithmConfigurationService
     {
         var config = await _unitOfWork.Repository<AlgorithmConfiguration>().FindOneAsync(x => x.Id == id && x.UserId == userId);
         if (config is null)
-            return Result.Fail("Algorithm configuration not found");
+            return Result.Fail(new NotFoundError("Algorithm configuration not found"));
 
         _unitOfWork.Repository<AlgorithmConfiguration>().Delete(config);
         await _unitOfWork.SaveChangesAsync();

@@ -5,6 +5,7 @@ using NSubstitute;
 using OptimizationHeuristics.Api.Controllers;
 using OptimizationHeuristics.Api.DTOs;
 using OptimizationHeuristics.Core.Entities;
+using OptimizationHeuristics.Core.Errors;
 using OptimizationHeuristics.Core.Models;
 using OptimizationHeuristics.Core.Services;
 
@@ -55,7 +56,7 @@ public class ProblemDefinitionsControllerTests
     [Fact]
     public async Task GetById_NotFound_ReturnsNotFound()
     {
-        _service.GetByIdAsync(Arg.Any<Guid>(), _userId).Returns(Result.Fail<ProblemDefinition>("not found"));
+        _service.GetByIdAsync(Arg.Any<Guid>(), _userId).Returns(Result.Fail<ProblemDefinition>(new NotFoundError("not found")));
 
         var result = await _controller.GetById(Guid.NewGuid());
 
@@ -77,7 +78,7 @@ public class ProblemDefinitionsControllerTests
 
         var result = await _controller.Create(request);
 
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(201);
     }
 
     [Fact]
@@ -93,7 +94,7 @@ public class ProblemDefinitionsControllerTests
     [Fact]
     public async Task Delete_NotFound_ReturnsNotFound()
     {
-        _service.DeleteAsync(Arg.Any<Guid>(), _userId).Returns(Result.Fail("not found"));
+        _service.DeleteAsync(Arg.Any<Guid>(), _userId).Returns(Result.Fail(new NotFoundError("not found")));
 
         var result = await _controller.Delete(Guid.NewGuid());
 
