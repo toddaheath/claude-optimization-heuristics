@@ -36,7 +36,7 @@ OptimizationHeuristics.sln
 dotnet build                                          # Build the solution
 dotnet test                                           # Run all tests
 dotnet test --filter "FullyQualifiedName~TestName"    # Run a single test
-dotnet run --project src/OptimizationHeuristics.Api   # Start API on localhost:5000
+dotnet run --project src/OptimizationHeuristics.Api   # Start API on localhost:5211
 
 # Frontend
 cd client && npm install                              # Install dependencies
