@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 import { useStore } from '../store/useStore';
+import { decodeJwtPayload } from '../utils/jwt';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export function RegisterPage() {
       const tokens = await authApi.register({ email, password, displayName });
       setTokens(tokens);
 
-      const payload = JSON.parse(atob(tokens.accessToken.split('.')[1]));
+      const payload = decodeJwtPayload(tokens.accessToken);
       setCurrentUser({ id: payload.sub, email: payload.email, displayName: payload.displayName ?? '' });
 
       navigate('/', { replace: true });
@@ -44,8 +45,9 @@ export function RegisterPage() {
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+            <label htmlFor="register-display-name" className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
             <input
+              id="register-display-name"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -55,8 +57,9 @@ export function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="register-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
+              id="register-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -65,8 +68,9 @@ export function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label htmlFor="register-password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
+              id="register-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

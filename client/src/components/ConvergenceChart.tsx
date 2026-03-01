@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -18,19 +19,23 @@ interface Props {
 export function ConvergenceChart({ history, currentIteration }: Props) {
   if (history.length === 0) return null;
 
-  const visible = history.slice(0, currentIteration + 1);
+  const { hasCurrentDistance, data } = useMemo(() => {
+    const visible = history.slice(0, currentIteration + 1);
 
-  // Only show the current-distance line when data is present and non-zero
-  // (old runs stored before this field was added will have currentDistance === 0)
-  const hasCurrentDistance = visible.some((h) => h.currentDistance > 0);
+    // Only show the current-distance line when data is present and non-zero
+    // (old runs stored before this field was added will have currentDistance === 0)
+    const hasCurrentDistance = visible.some((h) => h.currentDistance > 0);
 
-  const data = visible.map((h) => ({
-    iteration: h.iteration + 1, // 1-based for display
-    best: Math.round(h.bestDistance * 100) / 100,
-    ...(hasCurrentDistance
-      ? { current: Math.round(h.currentDistance * 100) / 100 }
-      : {}),
-  }));
+    const data = visible.map((h) => ({
+      iteration: h.iteration + 1, // 1-based for display
+      best: Math.round(h.bestDistance * 100) / 100,
+      ...(hasCurrentDistance
+        ? { current: Math.round(h.currentDistance * 100) / 100 }
+        : {}),
+    }));
+
+    return { hasCurrentDistance, data };
+  }, [history, currentIteration]);
 
   return (
     <div className="bg-white p-4 rounded-lg border border-gray-300">

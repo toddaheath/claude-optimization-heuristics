@@ -61,6 +61,7 @@ export interface OptimizationRun {
   iterationHistory?: IterationResult[];
   totalIterations: number;
   executionTimeMs: number;
+  errorMessage?: string;
   createdAt: string;
   updatedAt: string;
 }

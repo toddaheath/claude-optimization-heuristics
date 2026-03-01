@@ -1,16 +1,10 @@
 import axios from 'axios';
 import type { ApiResponse, AuthTokens, LoginRequest, RegisterRequest } from '../types';
+import { unwrap } from './utils';
 
 // Separate axios instance — not wrapped with the 401-refresh interceptor
 // to prevent infinite loops on the auth endpoints themselves.
 const authAxios = axios.create({ baseURL: `${import.meta.env.VITE_API_URL || ''}/api/v1` });
-
-function unwrap<T>(response: { data: ApiResponse<T> }): T {
-  if (!response.data.success) {
-    throw new Error(response.data.errors.join(', '));
-  }
-  return response.data.data!;
-}
 
 export const authApi = {
   register: (data: RegisterRequest) =>

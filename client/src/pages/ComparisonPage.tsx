@@ -190,7 +190,7 @@ export function ComparisonPage() {
             <div>
               <h3 className="text-sm font-semibold mb-2 text-gray-700">Final Routes</h3>
               <div
-                className={`grid gap-4 ${loadedRuns.length <= 2 ? 'grid-cols-2' : 'grid-cols-2'}`}
+                className={`grid gap-4 ${loadedRuns.length <= 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 xl:grid-cols-4'}`}
               >
                 {loadedRuns.map((run, i) => {
                   const cfg = configMap.get(run.algorithmConfigurationId);
