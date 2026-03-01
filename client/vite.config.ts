@@ -10,4 +10,13 @@ export default defineConfig({
       '/health': 'http://localhost:5211',
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          recharts: ['recharts'],
+        },
+      },
+    },
+  },
 })
