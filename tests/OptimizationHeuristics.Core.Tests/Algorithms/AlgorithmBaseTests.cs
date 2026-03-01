@@ -14,6 +14,15 @@ public class AlgorithmBaseTests
             IReadOnlyList<City> cities, int maxIterations, Dictionary<string, object> parameters,
             IList<IterationResult> history, CancellationToken cancellationToken = default)
         {
+            for (int i = 0; i < maxIterations; i++)
+            {
+                history.Add(new IterationResult(
+                    Iteration: i,
+                    BestDistance: 100 - i,
+                    BestRoute: Enumerable.Range(0, cities.Count).ToList(),
+                    CurrentDistance: 100 - i
+                ));
+            }
             return ([0, 1], 42.0);
         }
 
@@ -72,11 +81,12 @@ public class AlgorithmBaseTests
         var algo = new TestAlgorithm();
         var cities = new List<City> { new(0, 0, 0), new(1, 10, 10) };
         var callbackCount = 0;
+        var maxIterations = 5;
 
-        algo.Solve(cities, 1, new Dictionary<string, object>(), onIteration: _ => callbackCount++);
+        algo.Solve(cities, maxIterations, new Dictionary<string, object>(), onIteration: _ => callbackCount++);
 
-        // TestAlgorithm doesn't add to history, so callback won't fire, but Solve should still complete.
-        callbackCount.Should().Be(0);
+        callbackCount.Should().BeGreaterThan(0);
+        callbackCount.Should().Be(maxIterations);
     }
 
     [Fact]

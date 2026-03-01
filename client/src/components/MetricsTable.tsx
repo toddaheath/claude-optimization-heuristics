@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { OptimizationRun, AlgorithmConfiguration } from '../types';
 import { ALGORITHM_LABELS } from '../types';
 
@@ -7,7 +8,7 @@ interface Props {
 }
 
 export function MetricsTable({ runs, configs }: Props) {
-  const configMap = new Map(configs.map((c) => [c.id, c]));
+  const configMap = useMemo(() => new Map(configs.map((c) => [c.id, c])), [configs]);
   const bestIdx = runs.reduce(
     (min, r, i) =>
       r.bestDistance != null && (min === -1 || r.bestDistance < runs[min].bestDistance!)
