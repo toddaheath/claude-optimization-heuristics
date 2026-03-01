@@ -21,14 +21,25 @@ public class SimulatedAnnealing : AlgorithmBase
 
         for (var iteration = 0; iteration < maxIterations && temperature > minTemp && !cancellationToken.IsCancellationRequested; iteration++)
         {
-            var newRoute = TwoOptSwap(currentRoute);
-            var newDistance = Route.CalculateTotalDistance(newRoute, cities);
+            // Pick two random indices for the 2-opt segment reversal
+            var i = Rng.Next(currentRoute.Count);
+            var j = Rng.Next(currentRoute.Count);
+            if (i > j) (i, j) = (j, i);
+
+            // Reverse segment in-place (no allocation)
+            ReverseSegment(currentRoute, i, j);
+            var newDistance = Route.CalculateTotalDistance(currentRoute, cities);
             var delta = newDistance - currentDistance;
 
             if (delta < 0 || Rng.NextDouble() < Math.Exp(-delta / temperature))
             {
-                currentRoute = newRoute;
+                // Accept the move — keep the reversed segment
                 currentDistance = newDistance;
+            }
+            else
+            {
+                // Reject the move — reverse back to restore original route
+                ReverseSegment(currentRoute, i, j);
             }
 
             if (currentDistance < bestDistance)
@@ -45,18 +56,17 @@ public class SimulatedAnnealing : AlgorithmBase
         return (bestRoute, bestDistance);
     }
 
-    private List<int> TwoOptSwap(List<int> route)
+    /// <summary>
+    /// Reverses the segment of the route between indices i and j (inclusive) in-place.
+    /// Calling this twice with the same indices restores the original order.
+    /// </summary>
+    private static void ReverseSegment(List<int> route, int i, int j)
     {
-        var newRoute = new List<int>(route);
-        var i = Rng.Next(newRoute.Count);
-        var j = Rng.Next(newRoute.Count);
-        if (i > j) (i, j) = (j, i);
         while (i < j)
         {
-            (newRoute[i], newRoute[j]) = (newRoute[j], newRoute[i]);
+            (route[i], route[j]) = (route[j], route[i]);
             i++;
             j--;
         }
-        return newRoute;
     }
 }

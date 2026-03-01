@@ -47,7 +47,6 @@ export const useStore = create<AppState>()(
           iterationHistory: run?.iterationHistory ?? [],
           currentIteration: 0,
           isPlaying: false,
-          isRunning: false,
           selectedProblemId: run?.problemDefinitionId ?? state.selectedProblemId,
         })),
 

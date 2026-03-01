@@ -10,6 +10,7 @@ public class AlgorithmConfigurationServiceTests
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRepository<AlgorithmConfiguration> _repo;
+    private readonly IRepository<OptimizationRun> _runRepo;
     private readonly AlgorithmConfigurationService _service;
     private readonly Guid _userId = Guid.NewGuid();
 
@@ -17,7 +18,9 @@ public class AlgorithmConfigurationServiceTests
     {
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _repo = Substitute.For<IRepository<AlgorithmConfiguration>>();
+        _runRepo = Substitute.For<IRepository<OptimizationRun>>();
         _unitOfWork.Repository<AlgorithmConfiguration>().Returns(_repo);
+        _unitOfWork.Repository<OptimizationRun>().Returns(_runRepo);
         _service = new AlgorithmConfigurationService(_unitOfWork);
     }
 
@@ -117,11 +120,27 @@ public class AlgorithmConfigurationServiceTests
         var id = Guid.NewGuid();
         var config = new AlgorithmConfiguration { Id = id, Name = "Test" };
         _repo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns(config);
+        _runRepo.FindAsync(Arg.Any<Expression<Func<OptimizationRun, bool>>>()).Returns(new List<OptimizationRun>());
 
         var result = await _service.DeleteAsync(id, _userId);
 
         result.IsSuccess.Should().BeTrue();
         _repo.Received(1).Delete(config);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ReferencedByRuns_ReturnsFail()
+    {
+        var id = Guid.NewGuid();
+        var config = new AlgorithmConfiguration { Id = id, Name = "Test" };
+        _repo.FindOneAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns(config);
+        _runRepo.FindAsync(Arg.Any<Expression<Func<OptimizationRun, bool>>>())
+            .Returns(new List<OptimizationRun> { new() { Id = Guid.NewGuid() } });
+
+        var result = await _service.DeleteAsync(id, _userId);
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Contain("referenced by one or more optimization runs");
     }
 
     [Fact]

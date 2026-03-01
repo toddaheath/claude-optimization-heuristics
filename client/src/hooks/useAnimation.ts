@@ -2,8 +2,12 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
 
 export function useAnimation() {
-  const { iterationHistory, currentIteration, isPlaying, playbackSpeed, setCurrentIteration, setIsPlaying } =
-    useStore();
+  const iterationHistory = useStore((s) => s.iterationHistory);
+  const currentIteration = useStore((s) => s.currentIteration);
+  const isPlaying = useStore((s) => s.isPlaying);
+  const playbackSpeed = useStore((s) => s.playbackSpeed);
+  const setCurrentIteration = useStore((s) => s.setCurrentIteration);
+  const setIsPlaying = useStore((s) => s.setIsPlaying);
   const frameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const historyLenRef = useRef(iterationHistory.length);

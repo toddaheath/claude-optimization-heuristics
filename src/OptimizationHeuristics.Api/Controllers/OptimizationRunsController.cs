@@ -45,7 +45,7 @@ public class OptimizationRunsController : ControllerBase
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
         var result = await _service.GetAllAsync(_currentUser.UserId, page, pageSize);
-        return result.Map(runs => runs.Select(MapToResponse).ToList()).ToActionResult();
+        return result.Map(r => new { items = r.Items.Select(MapToResponse).ToList(), totalCount = r.TotalCount }).ToActionResult();
     }
 
     [HttpGet("{id:guid}")]

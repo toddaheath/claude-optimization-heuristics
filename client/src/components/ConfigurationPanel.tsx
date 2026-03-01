@@ -39,13 +39,53 @@ export function ConfigurationPanel() {
   const [maxIterations, setMaxIterations] = useState(500);
   const [cityCount, setCityCount] = useState(20);
   const [isStartingRun, setIsStartingRun] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
 
-  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const activeRunIdRef = useRef<string | null>(null);
 
   const { data: problems } = useQuery({
     queryKey: ['problems'],
     queryFn: problemApi.getAll,
   });
+
+  // Poll for progress using React Query's refetchInterval
+  const { data: progress } = useQuery({
+    queryKey: ['run-progress', activeRunIdRef.current],
+    queryFn: () => runApi.getProgress(activeRunIdRef.current!),
+    enabled: !!activeRunIdRef.current && isRunning,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      if (status && status !== 'Running') return false;
+      return POLL_INTERVAL_MS;
+    },
+  });
+
+  // React to progress updates
+  useEffect(() => {
+    if (!progress) return;
+
+    const history = progress.iterationHistory ?? [];
+    setIterationHistory(history);
+    if (history.length > 0) {
+      setCurrentIteration(history.length - 1);
+    }
+
+    if (progress.status !== RunStatus.Running) {
+      const runId = activeRunIdRef.current;
+      activeRunIdRef.current = null;
+      setIsRunning(false);
+
+      if (runId) {
+        // Fetch the final saved run from the DB
+        runApi.getById(runId).then((finalRun) => {
+          setCurrentRun(finalRun);
+          queryClient.invalidateQueries({ queryKey: ['runs'] });
+        }).catch(() => {
+          queryClient.invalidateQueries({ queryKey: ['runs'] });
+        });
+      }
+    }
+  }, [progress, setIterationHistory, setCurrentIteration, setIsRunning, setCurrentRun, queryClient]);
 
   const createProblem = useMutation({
     mutationFn: problemApi.create,
@@ -61,19 +101,10 @@ export function ConfigurationPanel() {
     setParameters(DEFAULT_PARAMETERS[type]);
   };
 
-  const stopPolling = () => {
-    if (pollTimerRef.current !== null) {
-      clearInterval(pollTimerRef.current);
-      pollTimerRef.current = null;
-    }
-  };
-
-  useEffect(() => () => stopPolling(), []);
-
   const startRun = async () => {
     if (!selectedProblemId) return;
     setIsStartingRun(true);
-    stopPolling();
+    setRunError(null);
 
     try {
       const config = await configApi.create({
@@ -91,34 +122,10 @@ export function ConfigurationPanel() {
 
       setCurrentRun(run);
       setIsRunning(true);
-
-      // Start polling for progress
-      const runId = run.id;
-      pollTimerRef.current = setInterval(async () => {
-        try {
-          const progress = await runApi.getProgress(runId);
-          const history = progress.iterationHistory ?? [];
-          setIterationHistory(history);
-          if (history.length > 0) {
-            setCurrentIteration(history.length - 1);
-          }
-
-          if (progress.status !== RunStatus.Running) {
-            stopPolling();
-            setIsRunning(false);
-            // Fetch the final saved run from the DB
-            const finalRun = await runApi.getById(runId);
-            setCurrentRun(finalRun);
-            queryClient.invalidateQueries({ queryKey: ['runs'] });
-          }
-        } catch {
-          stopPolling();
-          setIsRunning(false);
-          queryClient.invalidateQueries({ queryKey: ['runs'] });
-        }
-      }, POLL_INTERVAL_MS);
+      activeRunIdRef.current = run.id;
     } catch (err) {
-      console.error('Failed to start run:', err);
+      const message = err instanceof Error ? err.message : 'Failed to start optimization run';
+      setRunError(message);
       setIsRunning(false);
     } finally {
       setIsStartingRun(false);
@@ -296,6 +303,12 @@ export function ConfigurationPanel() {
       </div>
 
       <ParameterForm parameters={parameters} onChange={setParameters} />
+
+      {runError && (
+        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+          {runError}
+        </div>
+      )}
 
       <button
         onClick={startRun}

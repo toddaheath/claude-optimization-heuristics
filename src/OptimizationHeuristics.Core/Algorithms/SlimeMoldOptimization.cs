@@ -32,12 +32,18 @@ public class SlimeMoldOptimization : AlgorithmBase
             var bestFitness = fitness[sortedIndices[0]];
             var worstFitness = fitness[sortedIndices[^1]];
 
+            // Precompute rank array: ranks[i] = position of individual i in sorted order
+            // This replaces O(n) Array.IndexOf lookups with O(1) array access
+            var ranks = new int[populationSize];
+            for (var r = 0; r < sortedIndices.Length; r++)
+                ranks[sortedIndices[r]] = r;
+
             var t = (double)(iteration + 1) / maxIterations;
             var a = Math.Atanh(Math.Min(1.0 - t, 0.999));
 
             for (var i = 0; i < populationSize; i++)
             {
-                var weight = ComputeWeight(fitness[i], bestFitness, worstFitness, sortedIndices, i, populationSize);
+                var weight = ComputeWeight(fitness[i], bestFitness, worstFitness, ranks[i], populationSize);
 
                 var newRoute = new List<int>(population[i]);
 
@@ -102,12 +108,11 @@ public class SlimeMoldOptimization : AlgorithmBase
     }
 
     private double ComputeWeight(double currentFitness, double bestFitness, double worstFitness,
-        int[] sortedIndices, int currentIdx, int populationSize)
+        int rank, int populationSize)
     {
         var range = worstFitness - bestFitness;
         if (range == 0) return 1.0;
 
-        var rank = Array.IndexOf(sortedIndices, currentIdx);
         if (rank < populationSize / 2)
         {
             return 1.0 + Rng.NextDouble() * Math.Log10((currentFitness - bestFitness) / range + 1);

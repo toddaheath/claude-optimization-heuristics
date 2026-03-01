@@ -43,6 +43,10 @@ public class ProblemDefinitionService : IProblemDefinitionService
         if (problem is null)
             return Result.Fail(new NotFoundError("Problem definition not found"));
 
+        var referencingRuns = await _unitOfWork.Repository<OptimizationRun>().FindAsync(r => r.ProblemDefinitionId == id && r.UserId == userId);
+        if (referencingRuns.Count > 0)
+            return Result.Fail("Cannot delete problem definition because it is referenced by one or more optimization runs. Delete those runs first.");
+
         _unitOfWork.Repository<ProblemDefinition>().Delete(problem);
         await _unitOfWork.SaveChangesAsync();
         return Result.Ok();
