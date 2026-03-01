@@ -17,9 +17,9 @@ interface Props {
 }
 
 export function ConvergenceChart({ history, currentIteration }: Props) {
-  if (history.length === 0) return null;
-
   const { hasCurrentDistance, data } = useMemo(() => {
+    if (history.length === 0) return { hasCurrentDistance: false, data: [] as { iteration: number; best: number; current?: number }[] };
+
     const visible = history.slice(0, currentIteration + 1);
 
     // Only show the current-distance line when data is present and non-zero
@@ -36,6 +36,8 @@ export function ConvergenceChart({ history, currentIteration }: Props) {
 
     return { hasCurrentDistance, data };
   }, [history, currentIteration]);
+
+  if (history.length === 0) return null;
 
   return (
     <div className="bg-white p-4 rounded-lg border border-gray-300">
