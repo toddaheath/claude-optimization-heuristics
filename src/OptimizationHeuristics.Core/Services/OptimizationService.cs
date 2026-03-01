@@ -108,9 +108,18 @@ public class OptimizationService : IOptimizationService
             return Result.Fail<RunProgressSnapshot>(new NotFoundError("Optimization run not found"));
 
         var snapshot = _progressStore.GetSnapshot(runId);
-        return snapshot is null
-            ? Result.Fail<RunProgressSnapshot>(new NotFoundError("Run not found in progress store"))
-            : Result.Ok(snapshot);
+        if (snapshot is not null)
+            return Result.Ok(snapshot);
+
+        // Run completed and was cleaned from the progress store — build snapshot from DB
+        return Result.Ok(new RunProgressSnapshot(
+            run.Id,
+            run.Status,
+            run.IterationHistory ?? [],
+            run.BestDistance,
+            run.ExecutionTimeMs,
+            null
+        ));
     }
 
     public async Task<Result<(List<OptimizationRun> Items, int TotalCount)>> GetAllAsync(Guid userId, int page = 1, int pageSize = 20)
