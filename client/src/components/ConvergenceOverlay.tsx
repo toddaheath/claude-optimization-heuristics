@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -22,18 +23,22 @@ export function ConvergenceOverlay({ runs, configs }: Props) {
   const configMap = new Map(configs.map((c) => [c.id, c]));
 
   const maxLen = Math.max(...runs.map((r) => r.iterationHistory?.length ?? 0));
-  if (maxLen === 0) return null;
 
-  const data = Array.from({ length: maxLen }, (_, i) => {
-    const point: Record<string, number> = { iteration: i + 1 };
-    runs.forEach((r, ri) => {
-      const h = r.iterationHistory?.[i];
-      if (h) {
-        point[`run${ri}`] = Math.round(h.bestDistance * 100) / 100;
-      }
+  const data = useMemo(() => {
+    if (maxLen === 0) return [];
+    return Array.from({ length: maxLen }, (_, i) => {
+      const point: Record<string, number> = { iteration: i + 1 };
+      runs.forEach((r, ri) => {
+        const h = r.iterationHistory?.[i];
+        if (h) {
+          point[`run${ri}`] = Math.round(h.bestDistance * 100) / 100;
+        }
+      });
+      return point;
     });
-    return point;
-  });
+  }, [runs, maxLen]);
+
+  if (maxLen === 0) return null;
 
   return (
     <div className="bg-white p-4 rounded-lg border border-gray-300">

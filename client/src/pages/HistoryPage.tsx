@@ -135,6 +135,7 @@ export function HistoryPage() {
   const [detailsLoading, setDetailsLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const pageSize = 20;
 
   const { data: runs, isLoading } = useQuery({
@@ -234,7 +235,21 @@ export function HistoryPage() {
                   <td className="p-3 border-b space-x-3">
                     <button onClick={() => openDetails(run)} disabled={detailsLoading === run.id} className="text-gray-600 hover:text-gray-900 text-sm disabled:opacity-50">{detailsLoading === run.id ? 'Loading…' : 'Details'}</button>
                     <button onClick={() => loadRun(run.id)} className="text-blue-600 hover:text-blue-800 text-sm">Replay</button>
-                    <button onClick={() => { if (window.confirm('Are you sure you want to delete this run?')) deleteRun.mutate(run.id); }} className="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                    {confirmingDeleteId === run.id ? (
+                      <button
+                        onClick={() => { deleteRun.mutate(run.id); setConfirmingDeleteId(null); }}
+                        className="text-red-700 font-semibold hover:underline text-xs"
+                      >
+                        Confirm?
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmingDeleteId(run.id)}
+                        className="text-red-500 hover:underline text-xs"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
