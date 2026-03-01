@@ -96,7 +96,7 @@ function RunDetailsModal({ run, config, onClose }: RunDetailsModalProps) {
           {row('Last Updated', new Date(run.updatedAt).toLocaleString())}
           {run.status === RunStatus.Failed && row('Error',
             <span className="text-red-600 text-xs break-words">
-              {(run as OptimizationRun & { errorMessage?: string }).errorMessage ?? 'Unknown error'}
+              {run.errorMessage ?? 'Unknown error'}
             </span>
           )}
         </div>

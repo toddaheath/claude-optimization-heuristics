@@ -57,8 +57,9 @@ export function ConfigurationsPage() {
       {showForm && (
         <div className="p-4 bg-gray-50 rounded-lg border mb-6 space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label htmlFor="config-name" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
             <input
+              id="config-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
@@ -67,8 +68,9 @@ export function ConfigurationsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label htmlFor="config-description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <input
+              id="config-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
@@ -79,8 +81,9 @@ export function ConfigurationsPage() {
           <AlgorithmSelector value={algorithmType} onChange={handleAlgorithmChange} />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max Iterations</label>
+            <label htmlFor="config-max-iterations" className="block text-sm font-medium text-gray-700 mb-1">Max Iterations</label>
             <input
+              id="config-max-iterations"
               type="number"
               min={1}
               value={maxIterations}

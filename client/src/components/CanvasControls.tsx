@@ -72,6 +72,7 @@ export function CanvasControls() {
         <button
           onClick={reset}
           title="Reset (Home)"
+          aria-label="Reset to first frame"
           className="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
         >
           ⏮
@@ -82,6 +83,7 @@ export function CanvasControls() {
           onClick={stepBack}
           disabled={currentIteration === 0}
           title="Step back (←)"
+          aria-label="Previous frame"
           className="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm disabled:opacity-40"
         >
           ◀
@@ -91,6 +93,7 @@ export function CanvasControls() {
         <button
           onClick={() => setIsPlaying(!isPlaying)}
           title="Play / Pause (Space)"
+          aria-label={isPlaying ? 'Pause' : 'Play'}
           className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium text-sm min-w-[80px]"
         >
           {isPlaying ? '⏸ Pause' : '▶ Play'}
@@ -101,6 +104,7 @@ export function CanvasControls() {
           onClick={stepForward}
           disabled={currentIteration >= lastFrame}
           title="Step forward (→)"
+          aria-label="Next frame"
           className="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm disabled:opacity-40"
         >
           ▶
@@ -116,6 +120,7 @@ export function CanvasControls() {
             setCurrentIteration(Number(e.target.value));
             setIsPlaying(false);
           }}
+          aria-label="Playback position"
           className="flex-1"
         />
 
@@ -128,6 +133,7 @@ export function CanvasControls() {
         <select
           value={playbackSpeed}
           onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+          aria-label="Playback speed"
           className="px-2 py-1 border rounded text-sm bg-white"
         >
           <option value={0.5}>0.5×</option>

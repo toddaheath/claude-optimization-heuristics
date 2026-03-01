@@ -127,11 +127,13 @@ public class OptimizationServiceTests
             Arg.Any<Expression<Func<OptimizationRun, bool>>>(),
             Arg.Any<Expression<Func<OptimizationRun, DateTime>>>(),
             1, 3, true).Returns(runs);
+        _runRepo.CountAsync(Arg.Any<Expression<Func<OptimizationRun, bool>>>()).Returns(5);
 
         var result = await _service.GetAllAsync(_userId, 1, 3);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(3);
+        result.Value.Items.Should().HaveCount(3);
+        result.Value.TotalCount.Should().Be(5);
     }
 
     [Fact]

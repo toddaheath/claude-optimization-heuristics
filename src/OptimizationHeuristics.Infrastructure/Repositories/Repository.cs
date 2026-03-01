@@ -33,6 +33,9 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task<T?> FindOneAsync(Expression<Func<T, bool>> predicate)
         => await DbSet.FirstOrDefaultAsync(predicate);
 
+    public async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
+        => await DbSet.CountAsync(predicate);
+
     public async Task AddAsync(T entity) => await DbSet.AddAsync(entity);
 
     public void Update(T entity) => DbSet.Update(entity);

@@ -59,6 +59,10 @@ public class AlgorithmConfigurationService : IAlgorithmConfigurationService
         if (config is null)
             return Result.Fail(new NotFoundError("Algorithm configuration not found"));
 
+        var referencingRuns = await _unitOfWork.Repository<OptimizationRun>().FindAsync(r => r.AlgorithmConfigurationId == id && r.UserId == userId);
+        if (referencingRuns.Count > 0)
+            return Result.Fail("Cannot delete algorithm configuration because it is referenced by one or more optimization runs. Delete those runs first.");
+
         _unitOfWork.Repository<AlgorithmConfiguration>().Delete(config);
         await _unitOfWork.SaveChangesAsync();
         return Result.Ok();

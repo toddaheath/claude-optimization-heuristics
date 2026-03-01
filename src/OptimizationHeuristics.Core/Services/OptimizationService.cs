@@ -109,15 +109,17 @@ public class OptimizationService : IOptimizationService
 
         var snapshot = _progressStore.GetSnapshot(runId);
         return snapshot is null
-            ? Result.Fail<RunProgressSnapshot>("Run not found in progress store")
+            ? Result.Fail<RunProgressSnapshot>(new NotFoundError("Run not found in progress store"))
             : Result.Ok(snapshot);
     }
 
-    public async Task<Result<List<OptimizationRun>>> GetAllAsync(Guid userId, int page = 1, int pageSize = 20)
+    public async Task<Result<(List<OptimizationRun> Items, int TotalCount)>> GetAllAsync(Guid userId, int page = 1, int pageSize = 20)
     {
         var runs = await _unitOfWork.Repository<OptimizationRun>()
             .FindPagedAsync(x => x.UserId == userId, x => x.CreatedAt, page, pageSize, descending: true);
-        return Result.Ok(runs);
+        var totalCount = await _unitOfWork.Repository<OptimizationRun>()
+            .CountAsync(x => x.UserId == userId);
+        return Result.Ok((runs, totalCount));
     }
 
     public async Task<Result<OptimizationRun>> GetByIdAsync(Guid id, Guid userId)

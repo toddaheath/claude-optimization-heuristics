@@ -3,9 +3,11 @@ using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OptimizationHeuristics.Api.DTOs;
 using OptimizationHeuristics.Api.Middleware;
 using OptimizationHeuristics.Api.Services;
 using OptimizationHeuristics.Api.Validators;
@@ -93,6 +95,18 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProblemDefinitionValidator>();
 
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(e => e.Value?.Errors.Count > 0)
+            .SelectMany(e => e.Value!.Errors.Select(err => err.ErrorMessage))
+            .ToList();
+        return new BadRequestObjectResult(ApiResponse<object>.Fail(errors));
+    };
+});
+
 var corsOrigins = builder.Configuration.GetSection("CorsOrigins").Get<string[]>()
     ?? ["http://localhost:5173"];
 
@@ -168,7 +182,9 @@ try
 catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "Failed to initialize database on startup. The application will continue but database operations may fail.");
+    logger.LogError(ex, "Database migration failed");
+    if (!app.Environment.IsDevelopment())
+        throw;
 }
 
 app.Run();

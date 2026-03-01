@@ -63,9 +63,12 @@ export function ComparisonPage() {
     })),
   });
 
-  const loadedRuns = runQueries
-    .filter((q) => q.isSuccess && q.data)
-    .map((q) => q.data!);
+  const loadedRuns = useMemo(() => {
+    return runQueries
+      .filter((q): q is typeof q & { data: OptimizationRun } => q.isSuccess && !!q.data)
+      .map((q) => q.data);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runQueries.map((q) => q.dataUpdatedAt).join(',')]);
 
   // Fetch the shared problem definition
   const { data: problem } = useQuery({

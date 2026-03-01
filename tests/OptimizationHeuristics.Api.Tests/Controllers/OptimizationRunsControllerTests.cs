@@ -44,7 +44,7 @@ public class OptimizationRunsControllerTests
     [Fact]
     public async Task GetAll_ReturnsOk()
     {
-        _service.GetAllAsync(_userId, 1, 20).Returns(Result.Ok(new List<OptimizationRun>()));
+        _service.GetAllAsync(_userId, 1, 20).Returns(Result.Ok((new List<OptimizationRun>(), 0)));
 
         var result = await _controller.GetAll();
 

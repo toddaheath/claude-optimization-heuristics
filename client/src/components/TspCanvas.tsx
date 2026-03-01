@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import type { City, IterationResult } from '../types';
 
 interface Props {
@@ -40,25 +40,9 @@ export function TspCanvas({
   const width = Math.min(containerWidth, maxWidth);
   const height = Math.round(width * (maxHeight / maxWidth));
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const transform = useMemo(() => {
+    if (cities.length === 0) return null;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, width, height);
-
-    if (cities.length === 0) {
-      ctx.fillStyle = '#9ca3af';
-      ctx.font = '14px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('Generate or select a problem to begin', width / 2, height / 2);
-      ctx.textAlign = 'left';
-      return;
-    }
-
-    // ── Uniform aspect-ratio scaling (preserves circle shape) ──────────────
     const padding = 48;
     const xs = cities.map((c) => c.x);
     const ys = cities.map((c) => c.y);
@@ -80,6 +64,29 @@ export function TspCanvas({
       sx: originX + (city.x - minX) * scaleUniform,
       sy: originY + (city.y - minY) * scaleUniform,
     });
+
+    return { toCanvas, originX, originY, scaleUniform };
+  }, [cities, width, height]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, width, height);
+
+    if (cities.length === 0 || !transform) {
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Generate or select a problem to begin', width / 2, height / 2);
+      ctx.textAlign = 'left';
+      return;
+    }
+
+    const { toCanvas } = transform;
 
     // ── Route drawing helper ────────────────────────────────────────────────
     const drawRoute = (route: number[], color: string, lineWidth: number, dashed = false) => {
@@ -184,7 +191,7 @@ export function TspCanvas({
       ctx.fillStyle = '#c2410c';
       ctx.fillText(text, bx, by + 13);
     }
-  }, [cities, currentFrame, initialRoute, isComplete, isRunning, width, height]);
+  }, [cities, currentFrame, initialRoute, isComplete, isRunning, width, height, transform]);
 
   return (
     <div ref={containerRef} className="max-w-full">

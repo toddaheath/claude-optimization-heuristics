@@ -9,16 +9,11 @@ import type {
   AlgorithmType,
 } from '../types';
 import { authApi } from './authApi';
+import { unwrap } from './utils';
 import { useStore } from '../store/useStore';
+import { decodeJwtPayload } from '../utils/jwt';
 
 const api = axios.create({ baseURL: `${import.meta.env.VITE_API_URL || ''}/api/v1` });
-
-function unwrap<T>(response: { data: ApiResponse<T> }): T {
-  if (!response.data.success) {
-    throw new Error(response.data.errors.join(', '));
-  }
-  return response.data.data!;
-}
 
 // Token storage trade-off: Tokens are stored in Zustand (persisted to localStorage) for
 // SPA convenience. Moving to httpOnly cookies would improve XSS resilience but requires
@@ -80,7 +75,7 @@ api.interceptors.response.use(
       setTokens(tokens);
 
       // Decode basic user info from the new access token (sub, email, displayName)
-      const payload = JSON.parse(atob(tokens.accessToken.split('.')[1]));
+      const payload = decodeJwtPayload(tokens.accessToken);
       setCurrentUser({
         id: payload.sub,
         email: payload.email,

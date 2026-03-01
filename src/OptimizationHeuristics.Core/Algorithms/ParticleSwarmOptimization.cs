@@ -11,6 +11,8 @@ public class ParticleSwarmOptimization : AlgorithmBase
         var swarmSize = GetIntParam(parameters, "swarmSize", 30);
         var cognitiveWeight = GetParam(parameters, "cognitiveWeight", 2.0);
         var socialWeight = GetParam(parameters, "socialWeight", 2.0);
+        var inertiaMax = GetParam(parameters, "inertiaMax", 0.9);
+        var inertiaMin = GetParam(parameters, "inertiaMin", 0.4);
 
         var n = cities.Count;
         var particles = new List<List<int>>(swarmSize);
@@ -33,6 +35,9 @@ public class ParticleSwarmOptimization : AlgorithmBase
 
         for (var iteration = 0; iteration < maxIterations && !cancellationToken.IsCancellationRequested; iteration++)
         {
+            // Linearly decay inertia weight from inertiaMax to inertiaMin over iterations
+            double w = inertiaMax - (inertiaMax - inertiaMin) * iteration / maxIterations;
+
             var iterationBestDistance = double.MaxValue;
             for (var i = 0; i < swarmSize; i++)
             {
@@ -40,11 +45,18 @@ public class ParticleSwarmOptimization : AlgorithmBase
                 var personalSwaps = ComputeSwapSequence(particles[i], personalBest[i]);
                 var globalSwaps = ComputeSwapSequence(particles[i], globalBest);
 
-                // Probabilistically apply swaps
+                // Apply inertia: probabilistically retain swaps from old velocity
                 var newVelocity = new List<(int, int)>();
+                foreach (var swap in velocities[i])
+                    if (Rng.NextDouble() < w)
+                        newVelocity.Add(swap);
+
+                // Add cognitive component (toward personal best)
                 foreach (var swap in personalSwaps)
                     if (Rng.NextDouble() < cognitiveWeight / (cognitiveWeight + socialWeight))
                         newVelocity.Add(swap);
+
+                // Add social component (toward global best)
                 foreach (var swap in globalSwaps)
                     if (Rng.NextDouble() < socialWeight / (cognitiveWeight + socialWeight))
                         newVelocity.Add(swap);
