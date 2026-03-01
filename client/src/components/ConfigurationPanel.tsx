@@ -85,11 +85,11 @@ export function ConfigurationPanel() {
 
       if (runId) {
         // Fetch the final saved run from the DB
-        runApi.getById(runId).then((finalRun) => {
+        void runApi.getById(runId).then((finalRun) => {
           setCurrentRun(finalRun);
-          queryClient.invalidateQueries({ queryKey: ['runs'] });
+          void queryClient.invalidateQueries({ queryKey: ['runs'] });
         }).catch(() => {
-          queryClient.invalidateQueries({ queryKey: ['runs'] });
+          void queryClient.invalidateQueries({ queryKey: ['runs'] });
         });
       }
     }
@@ -98,7 +98,7 @@ export function ConfigurationPanel() {
   const createProblem = useMutation({
     mutationFn: problemApi.create,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['problems'] });
+      void queryClient.invalidateQueries({ queryKey: ['problems'] });
       setSelectedProblemId(data.id);
       setInitialRoute(randomRoute(data.cityCount));
     },
@@ -243,7 +243,7 @@ export function ConfigurationPanel() {
       )}
 
       <button
-        onClick={startRun}
+        onClick={() => void startRun()}
         disabled={!selectedProblemId || isRunActive}
         className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
       >

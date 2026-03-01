@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 interface Props {
   parameters: Record<string, number>;
   onChange: (params: Record<string, number>) => void;
@@ -24,7 +26,7 @@ const PARAM_LABELS: Record<string, string> = {
   neighborhoodSize: 'Neighborhood Size',
 };
 
-export function ParameterForm({ parameters, onChange }: Props) {
+export const ParameterForm = memo(function ParameterForm({ parameters, onChange }: Props) {
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700">Parameters</label>
@@ -43,4 +45,4 @@ export function ParameterForm({ parameters, onChange }: Props) {
       ))}
     </div>
   );
-}
+});

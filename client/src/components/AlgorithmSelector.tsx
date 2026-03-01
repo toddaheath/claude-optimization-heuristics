@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { AlgorithmType, ALGORITHM_LABELS } from '../types';
 
 interface Props {
@@ -5,7 +6,7 @@ interface Props {
   onChange: (type: AlgorithmType) => void;
 }
 
-export function AlgorithmSelector({ value, onChange }: Props) {
+export const AlgorithmSelector = memo(function AlgorithmSelector({ value, onChange }: Props) {
   return (
     <div>
       <label htmlFor="algorithm-select" className="block text-sm font-medium text-gray-700 mb-1">Algorithm</label>
@@ -23,4 +24,4 @@ export function AlgorithmSelector({ value, onChange }: Props) {
       </select>
     </div>
   );
-}
+});

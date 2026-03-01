@@ -25,7 +25,7 @@ export function ConfigurationsPage() {
   const createConfig = useMutation({
     mutationFn: configApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['configs'] });
+      void queryClient.invalidateQueries({ queryKey: ['configs'] });
       setShowForm(false);
       setName('');
       setDescription('');
@@ -34,7 +34,7 @@ export function ConfigurationsPage() {
 
   const deleteConfig = useMutation({
     mutationFn: configApi.delete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['configs'] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['configs'] }),
   });
 
   const handleAlgorithmChange = (type: AlgorithmType) => {

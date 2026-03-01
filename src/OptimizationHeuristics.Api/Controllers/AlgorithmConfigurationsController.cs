@@ -22,10 +22,12 @@ public class AlgorithmConfigurationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult> GetAll()
+    public async Task<ActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var result = await _service.GetAllAsync(_currentUser.UserId);
-        return result.Map(configs => configs.Select(MapToResponse).ToList()).ToActionResult();
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        var result = await _service.GetAllAsync(_currentUser.UserId, page, pageSize);
+        return result.Map(r => new { items = r.Items.Select(MapToResponse).ToList(), totalCount = r.TotalCount }).ToActionResult();
     }
 
     [HttpGet("{id:guid}")]

@@ -26,7 +26,7 @@ export function RegisterPage() {
       const payload = decodeJwtPayload(tokens.accessToken);
       setCurrentUser({ id: payload.sub, email: payload.email, displayName: payload.displayName ?? '' });
 
-      navigate('/', { replace: true });
+      void navigate('/', { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -43,7 +43,7 @@ export function RegisterPage() {
             {error}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <div>
             <label htmlFor="register-display-name" className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
             <input

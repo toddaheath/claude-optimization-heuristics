@@ -14,11 +14,29 @@ interface RunDetailsModalProps {
 
 function RunDetailsModal({ run, config, onClose }: RunDetailsModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     closeRef.current?.focus();
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
+      if (e.key === 'Tab') {
+        const modal = modalRef.current;
+        if (!modal) return;
+        const focusable = modal.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
@@ -46,6 +64,7 @@ function RunDetailsModal({ run, config, onClose }: RunDetailsModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="run-details-title"
@@ -150,7 +169,7 @@ export function HistoryPage() {
 
   const deleteRun = useMutation({
     mutationFn: runApi.delete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['runs'] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['runs'] }),
   });
 
   const loadRun = async (id: string) => {
@@ -158,7 +177,7 @@ export function HistoryPage() {
       setError(null);
       const run = await runApi.getById(id);
       setCurrentRun(run);
-      navigate('/');
+      void navigate('/');
     } catch {
       setError('Failed to load run. Please try again.');
     }
@@ -191,7 +210,14 @@ export function HistoryPage() {
         </div>
       )}
 
-      {isLoading && <p className="text-gray-500">Loading...</p>}
+      {isLoading && (
+        <div className="animate-pulse space-y-3">
+          <div className="h-10 bg-gray-200 rounded" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-12 bg-gray-100 rounded" />
+          ))}
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
@@ -233,8 +259,8 @@ export function HistoryPage() {
                       : `${(run.executionTimeMs / 1000).toFixed(1)} s`}
                   </td>
                   <td className="p-3 border-b space-x-3">
-                    <button onClick={() => openDetails(run)} disabled={detailsLoading === run.id} className="text-gray-600 hover:text-gray-900 text-sm disabled:opacity-50">{detailsLoading === run.id ? 'Loading…' : 'Details'}</button>
-                    <button onClick={() => loadRun(run.id)} className="text-blue-600 hover:text-blue-800 text-sm">Replay</button>
+                    <button onClick={() => void openDetails(run)} disabled={detailsLoading === run.id} className="text-gray-600 hover:text-gray-900 text-sm disabled:opacity-50">{detailsLoading === run.id ? 'Loading…' : 'Details'}</button>
+                    <button onClick={() => void loadRun(run.id)} className="text-blue-600 hover:text-blue-800 text-sm">Replay</button>
                     {confirmingDeleteId === run.id ? (
                       <button
                         onClick={() => { deleteRun.mutate(run.id); setConfirmingDeleteId(null); }}

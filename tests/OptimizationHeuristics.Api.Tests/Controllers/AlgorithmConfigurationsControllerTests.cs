@@ -28,11 +28,11 @@ public class AlgorithmConfigurationsControllerTests
     [Fact]
     public async Task GetAll_ReturnsOk()
     {
-        _service.GetAllAsync(_userId).Returns(Result.Ok(new List<AlgorithmConfiguration>
+        _service.GetAllAsync(_userId, 1, 50).Returns(Result.Ok((new List<AlgorithmConfiguration>
         {
             new() { Id = Guid.NewGuid(), Name = "Config", AlgorithmType = AlgorithmType.SimulatedAnnealing,
                      Parameters = new Dictionary<string, object>() }
-        }));
+        }, 1)));
 
         var result = await _controller.GetAll();
 

@@ -13,10 +13,13 @@ public class AlgorithmConfigurationService : IAlgorithmConfigurationService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<List<AlgorithmConfiguration>>> GetAllAsync(Guid userId)
+    public async Task<Result<(List<AlgorithmConfiguration> Items, int TotalCount)>> GetAllAsync(Guid userId, int page = 1, int pageSize = 50)
     {
-        var configs = await _unitOfWork.Repository<AlgorithmConfiguration>().FindAsync(x => x.UserId == userId);
-        return Result.Ok(configs);
+        var configs = await _unitOfWork.Repository<AlgorithmConfiguration>()
+            .FindPagedAsync(x => x.UserId == userId, x => x.CreatedAt, page, pageSize, descending: true);
+        var totalCount = await _unitOfWork.Repository<AlgorithmConfiguration>()
+            .CountAsync(x => x.UserId == userId);
+        return Result.Ok((configs, totalCount));
     }
 
     public async Task<Result<AlgorithmConfiguration>> GetByIdAsync(Guid id, Guid userId)

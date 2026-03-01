@@ -13,7 +13,7 @@ export function Nav() {
       isActive ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'
     }`;
 
-  async function handleLogout() {
+  function handleLogout() {
     if (refreshToken) {
       authApi.revoke(refreshToken).catch(() => {
         // best-effort
@@ -21,7 +21,7 @@ export function Nav() {
     }
     clearAuth();
     queryClient.clear();
-    navigate('/login');
+    void navigate('/login');
   }
 
   return (
