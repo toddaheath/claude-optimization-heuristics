@@ -29,10 +29,10 @@ public class ProblemDefinitionsControllerTests
     [Fact]
     public async Task GetAll_ReturnsOk()
     {
-        _service.GetAllAsync(_userId).Returns(Result.Ok(new List<ProblemDefinition>
+        _service.GetAllAsync(_userId, 1, 50).Returns(Result.Ok((new List<ProblemDefinition>
         {
             new() { Id = Guid.NewGuid(), Name = "P1", Cities = new List<City>(), CityCount = 0 }
-        }));
+        }, 1)));
 
         var result = await _controller.GetAll();
 

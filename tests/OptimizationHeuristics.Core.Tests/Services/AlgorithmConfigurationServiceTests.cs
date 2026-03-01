@@ -25,18 +25,23 @@ public class AlgorithmConfigurationServiceTests
     }
 
     [Fact]
-    public async Task GetAllAsync_ReturnsAll()
+    public async Task GetAllAsync_ReturnsPaginatedConfigs()
     {
         var configs = new List<AlgorithmConfiguration>
         {
             new() { Id = Guid.NewGuid(), Name = "SA Config", AlgorithmType = AlgorithmType.SimulatedAnnealing }
         };
-        _repo.FindAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns(configs);
+        _repo.FindPagedAsync(
+            Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>(),
+            Arg.Any<Expression<Func<AlgorithmConfiguration, DateTime>>>(),
+            1, 50, true).Returns(configs);
+        _repo.CountAsync(Arg.Any<Expression<Func<AlgorithmConfiguration, bool>>>()).Returns(3);
 
         var result = await _service.GetAllAsync(_userId);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(1);
+        result.Value.Items.Should().HaveCount(1);
+        result.Value.TotalCount.Should().Be(3);
     }
 
     [Fact]

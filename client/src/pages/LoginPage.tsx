@@ -28,7 +28,7 @@ export function LoginPage() {
       const payload = decodeJwtPayload(tokens.accessToken);
       setCurrentUser({ id: payload.sub, email: payload.email, displayName: payload.displayName ?? '' });
 
-      navigate(from, { replace: true });
+      void navigate(from, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -45,7 +45,7 @@ export function LoginPage() {
             {error}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <div>
             <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input

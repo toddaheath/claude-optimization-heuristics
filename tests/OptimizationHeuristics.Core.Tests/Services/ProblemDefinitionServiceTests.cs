@@ -25,19 +25,24 @@ public class ProblemDefinitionServiceTests
     }
 
     [Fact]
-    public async Task GetAllAsync_ReturnsAllProblems()
+    public async Task GetAllAsync_ReturnsPaginatedProblems()
     {
         var problems = new List<ProblemDefinition>
         {
             new() { Id = Guid.NewGuid(), Name = "P1", Cities = new List<City>(), CityCount = 0 },
             new() { Id = Guid.NewGuid(), Name = "P2", Cities = new List<City>(), CityCount = 0 }
         };
-        _repo.FindAsync(Arg.Any<Expression<Func<ProblemDefinition, bool>>>()).Returns(problems);
+        _repo.FindPagedAsync(
+            Arg.Any<Expression<Func<ProblemDefinition, bool>>>(),
+            Arg.Any<Expression<Func<ProblemDefinition, DateTime>>>(),
+            1, 50, true).Returns(problems);
+        _repo.CountAsync(Arg.Any<Expression<Func<ProblemDefinition, bool>>>()).Returns(5);
 
         var result = await _service.GetAllAsync(_userId);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(2);
+        result.Value.Items.Should().HaveCount(2);
+        result.Value.TotalCount.Should().Be(5);
     }
 
     [Fact]

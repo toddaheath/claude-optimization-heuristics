@@ -13,10 +13,13 @@ public class ProblemDefinitionService : IProblemDefinitionService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<List<ProblemDefinition>>> GetAllAsync(Guid userId)
+    public async Task<Result<(List<ProblemDefinition> Items, int TotalCount)>> GetAllAsync(Guid userId, int page = 1, int pageSize = 50)
     {
-        var problems = await _unitOfWork.Repository<ProblemDefinition>().FindAsync(x => x.UserId == userId);
-        return Result.Ok(problems);
+        var problems = await _unitOfWork.Repository<ProblemDefinition>()
+            .FindPagedAsync(x => x.UserId == userId, x => x.CreatedAt, page, pageSize, descending: true);
+        var totalCount = await _unitOfWork.Repository<ProblemDefinition>()
+            .CountAsync(x => x.UserId == userId);
+        return Result.Ok((problems, totalCount));
     }
 
     public async Task<Result<ProblemDefinition>> GetByIdAsync(Guid id, Guid userId)

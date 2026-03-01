@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import type {
   ApiResponse,
   ProblemDefinition,
@@ -12,6 +13,10 @@ import { authApi } from './authApi';
 import { unwrap } from './utils';
 import { useStore } from '../store/useStore';
 import { decodeJwtPayload } from '../utils/jwt';
+
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
 
 const api = axios.create({ baseURL: `${import.meta.env.VITE_API_URL || ''}/api/v1` });
 
@@ -43,11 +48,11 @@ function processQueue(error: unknown, token: string | null) {
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetryableRequestConfig | undefined;
 
-    if (error.response?.status !== 401 || originalRequest._retry) {
-      return Promise.reject(error);
+    if (error.response?.status !== 401 || !originalRequest || originalRequest._retry) {
+      return Promise.reject(new Error(error.message));
     }
 
     if (isRefreshing) {
@@ -67,7 +72,7 @@ api.interceptors.response.use(
     if (!refreshToken) {
       clearAuth();
       window.location.href = '/login';
-      return Promise.reject(error);
+      return Promise.reject(new Error(error.message));
     }
 
     try {
@@ -89,7 +94,7 @@ api.interceptors.response.use(
       processQueue(refreshError, null);
       clearAuth();
       window.location.href = '/login';
-      return Promise.reject(refreshError);
+      return Promise.reject(new Error(refreshError instanceof Error ? refreshError.message : 'Token refresh failed'));
     } finally {
       isRefreshing = false;
     }

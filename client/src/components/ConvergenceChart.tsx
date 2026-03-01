@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -16,7 +16,7 @@ interface Props {
   currentIteration: number;
 }
 
-export function ConvergenceChart({ history, currentIteration }: Props) {
+export const ConvergenceChart = memo(function ConvergenceChart({ history, currentIteration }: Props) {
   const { hasCurrentDistance, data } = useMemo(() => {
     if (history.length === 0) return { hasCurrentDistance: false, data: [] as { iteration: number; best: number; current?: number }[] };
 
@@ -89,4 +89,4 @@ export function ConvergenceChart({ history, currentIteration }: Props) {
       </ResponsiveContainer>
     </div>
   );
-}
+});

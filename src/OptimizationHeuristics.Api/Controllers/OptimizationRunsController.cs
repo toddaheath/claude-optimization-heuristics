@@ -45,7 +45,7 @@ public class OptimizationRunsController : ControllerBase
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
         var result = await _service.GetAllAsync(_currentUser.UserId, page, pageSize);
-        return result.Map(r => new { items = r.Items.Select(MapToResponse).ToList(), totalCount = r.TotalCount }).ToActionResult();
+        return result.Map(r => new { items = r.Items.Select(MapToSummary).ToList(), totalCount = r.TotalCount }).ToActionResult();
     }
 
     [HttpGet("{id:guid}")]
@@ -66,4 +66,8 @@ public class OptimizationRunsController : ControllerBase
         new(r.Id, r.AlgorithmConfigurationId, r.ProblemDefinitionId, r.Status,
             r.BestDistance, r.BestRoute, r.IterationHistory, r.TotalIterations,
             r.ExecutionTimeMs, r.CreatedAt, r.UpdatedAt);
+
+    private static OptimizationRunSummaryDto MapToSummary(OptimizationRun r) =>
+        new(r.Id, r.AlgorithmConfigurationId, r.ProblemDefinitionId, r.Status,
+            r.BestDistance, r.TotalIterations, r.ExecutionTimeMs, r.CreatedAt, r.UpdatedAt);
 }

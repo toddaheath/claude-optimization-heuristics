@@ -22,6 +22,18 @@ public record OptimizationRunResponse(
     DateTime UpdatedAt
 );
 
+public record OptimizationRunSummaryDto(
+    Guid Id,
+    Guid AlgorithmConfigurationId,
+    Guid ProblemDefinitionId,
+    RunStatus Status,
+    double? BestDistance,
+    int TotalIterations,
+    long ExecutionTimeMs,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
+);
+
 public record RunProgressResponse(
     Guid RunId,
     RunStatus Status,

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -19,8 +19,8 @@ interface Props {
 
 const COLORS = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b'];
 
-export function ConvergenceOverlay({ runs, configs }: Props) {
-  const configMap = new Map(configs.map((c) => [c.id, c]));
+export const ConvergenceOverlay = memo(function ConvergenceOverlay({ runs, configs }: Props) {
+  const configMap = useMemo(() => new Map(configs.map((c) => [c.id, c])), [configs]);
 
   const maxLen = Math.max(...runs.map((r) => r.iterationHistory?.length ?? 0));
 
@@ -87,4 +87,4 @@ export function ConvergenceOverlay({ runs, configs }: Props) {
       </ResponsiveContainer>
     </div>
   );
-}
+});
