@@ -13,10 +13,11 @@ export function ComparisonPage() {
   const [selectedProblemId, setSelectedProblemId] = useState<string>('');
   const [selectedRunIds, setSelectedRunIds] = useState<Set<string>>(new Set());
 
-  const { data: allRuns } = useQuery({
+  const { data: allRunsResponse } = useQuery({
     queryKey: ['runs', 1, 100],
     queryFn: () => runApi.getAll(1, 100),
   });
+  const allRuns = allRunsResponse?.items;
 
   const { data: configs } = useQuery({
     queryKey: ['configs'],

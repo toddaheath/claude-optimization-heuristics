@@ -157,10 +157,13 @@ export function HistoryPage() {
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const pageSize = 20;
 
-  const { data: runs, isLoading } = useQuery({
+  const { data: runsResponse, isLoading } = useQuery({
     queryKey: ['runs', page],
     queryFn: () => runApi.getAll(page, pageSize),
   });
+
+  const runs = runsResponse?.items;
+  const totalCount = runsResponse?.totalCount ?? 0;
 
   const { data: configs } = useQuery({
     queryKey: ['configs'],
@@ -293,10 +296,10 @@ export function HistoryPage() {
           >
             Previous
           </button>
-          <span className="text-sm text-gray-600">Page {page}</span>
+          <span className="text-sm text-gray-600">Page {page} of {Math.max(1, Math.ceil(totalCount / pageSize))}</span>
           <button
             onClick={() => setPage((p) => p + 1)}
-            disabled={runs.length < pageSize}
+            disabled={page * pageSize >= totalCount}
             className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium disabled:opacity-50"
           >
             Next
@@ -304,7 +307,7 @@ export function HistoryPage() {
         </div>
       )}
 
-      {runs?.length === 0 && page === 1 && (
+      {totalCount === 0 && page === 1 && (
         <p className="text-gray-500 mt-4">No runs yet. Go to Home to run an optimization.</p>
       )}
 

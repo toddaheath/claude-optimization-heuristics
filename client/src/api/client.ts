@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import type {
   ApiResponse,
+  PaginatedResponse,
   ProblemDefinition,
   AlgorithmConfiguration,
   OptimizationRun,
@@ -102,7 +103,9 @@ api.interceptors.response.use(
 );
 
 export const problemApi = {
-  getAll: () => api.get<ApiResponse<ProblemDefinition[]>>('/problem-definitions').then(unwrap),
+  getAll: () =>
+    api.get<ApiResponse<PaginatedResponse<ProblemDefinition>>>('/problem-definitions', { params: { pageSize: 100 } })
+      .then(unwrap).then((r) => r.items),
   getById: (id: string) => api.get<ApiResponse<ProblemDefinition>>(`/problem-definitions/${id}`).then(unwrap),
   create: (data: { name: string; description?: string; cities: City[] }) =>
     api.post<ApiResponse<ProblemDefinition>>('/problem-definitions', data).then(unwrap),
@@ -110,7 +113,9 @@ export const problemApi = {
 };
 
 export const configApi = {
-  getAll: () => api.get<ApiResponse<AlgorithmConfiguration[]>>('/algorithm-configurations').then(unwrap),
+  getAll: () =>
+    api.get<ApiResponse<PaginatedResponse<AlgorithmConfiguration>>>('/algorithm-configurations', { params: { pageSize: 100 } })
+      .then(unwrap).then((r) => r.items),
   getById: (id: string) =>
     api.get<ApiResponse<AlgorithmConfiguration>>(`/algorithm-configurations/${id}`).then(unwrap),
   create: (data: {
@@ -139,7 +144,7 @@ export const runApi = {
   getProgress: (id: string) =>
     api.get<ApiResponse<RunProgressResponse>>(`/optimization-runs/${id}/progress`).then(unwrap),
   getAll: (page = 1, pageSize = 20) =>
-    api.get<ApiResponse<OptimizationRun[]>>('/optimization-runs', { params: { page, pageSize } }).then(unwrap),
+    api.get<ApiResponse<PaginatedResponse<OptimizationRun>>>('/optimization-runs', { params: { page, pageSize } }).then(unwrap),
   getById: (id: string) => api.get<ApiResponse<OptimizationRun>>(`/optimization-runs/${id}`).then(unwrap),
   delete: (id: string) => api.delete(`/optimization-runs/${id}`),
 };
