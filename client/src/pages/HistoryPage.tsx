@@ -157,6 +157,9 @@ export function HistoryPage() {
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const pageSize = 20;
 
+  // Reset delete confirmation when page changes
+  useEffect(() => { setConfirmingDeleteId(null); }, [page]);
+
   const { data: runsResponse, isLoading, isError: isQueryError } = useQuery({
     queryKey: ['runs', page],
     queryFn: () => runApi.getAll(page, pageSize),
