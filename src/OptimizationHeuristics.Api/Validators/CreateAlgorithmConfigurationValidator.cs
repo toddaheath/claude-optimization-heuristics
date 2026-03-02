@@ -1,5 +1,6 @@
 using FluentValidation;
 using OptimizationHeuristics.Api.DTOs;
+using OptimizationHeuristics.Core.Algorithms;
 
 namespace OptimizationHeuristics.Api.Validators;
 
@@ -17,6 +18,11 @@ public class CreateAlgorithmConfigurationValidator : AbstractValidator<CreateAlg
             .WithMessage("Max iterations must be between 1 and 100,000.");
         RuleFor(x => x.Parameters).NotNull()
             .WithMessage("Parameters dictionary is required.");
+        RuleFor(x => x).Custom((request, context) =>
+        {
+            foreach (var error in AlgorithmParameterRules.Validate(request.AlgorithmType, request.Parameters))
+                context.AddFailure("Parameters", error);
+        });
     }
 }
 
@@ -34,5 +40,10 @@ public class UpdateAlgorithmConfigurationValidator : AbstractValidator<UpdateAlg
             .WithMessage("Max iterations must be between 1 and 100,000.");
         RuleFor(x => x.Parameters).NotNull()
             .WithMessage("Parameters dictionary is required.");
+        RuleFor(x => x).Custom((request, context) =>
+        {
+            foreach (var error in AlgorithmParameterRules.Validate(request.AlgorithmType, request.Parameters))
+                context.AddFailure("Parameters", error);
+        });
     }
 }
