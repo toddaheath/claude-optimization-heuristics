@@ -108,16 +108,77 @@ public class OptimizationRunIntegrationTests : IClassFixture<CustomWebApplicatio
     }
 
     [Fact]
-    public async Task GetAll_ReturnsOk()
+    public async Task GetAll_ReturnsPaginatedResponse()
     {
-        var response = await _client.GetAsync("/api/v1/optimization-runs");
+        var response = await _client.GetAsync("/api/v1/optimization-runs?page=1&pageSize=10");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+        doc.RootElement.GetProperty("success").GetBoolean().Should().BeTrue();
+        var data = doc.RootElement.GetProperty("data");
+        data.GetProperty("items").ValueKind.Should().Be(JsonValueKind.Array);
+        data.GetProperty("totalCount").GetInt32().Should().BeGreaterThanOrEqualTo(0);
     }
 
     [Fact]
     public async Task GetById_NonExistent_ReturnsNotFound()
     {
         var response = await _client.GetAsync($"/api/v1/optimization-runs/{Guid.NewGuid()}");
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Run_NonExistentConfig_ReturnsNotFound()
+    {
+        // Create a valid problem
+        var problemRequest = new CreateProblemDefinitionRequest(
+            "Error Test Problem", "Test",
+            new List<CityDto> { new(0, 0.0, 0.0), new(1, 1.0, 0.0), new(2, 1.0, 1.0) });
+        var problemResponse = await _client.PostAsJsonAsync("/api/v1/problem-definitions", problemRequest);
+        var problem = await problemResponse.Content.ReadFromJsonAsync<ApiResponse<ProblemDefinitionResponse>>();
+
+        // Try to run with a non-existent config
+        var runRequest = new RunOptimizationRequest(Guid.NewGuid(), problem!.Data!.Id);
+        var response = await _client.PostAsJsonAsync("/api/v1/optimization-runs", runRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Run_NonExistentProblem_ReturnsNotFound()
+    {
+        // Create a valid config
+        var configRequest = new CreateAlgorithmConfigurationRequest(
+            "Error Config", null, AlgorithmType.SimulatedAnnealing,
+            new Dictionary<string, object> { { "initialTemperature", 1000.0 }, { "coolingRate", 0.95 } }, 10);
+        var configResponse = await _client.PostAsJsonAsync("/api/v1/algorithm-configurations", configRequest);
+        var configDoc = await JsonDocument.ParseAsync(await configResponse.Content.ReadAsStreamAsync());
+        var configId = configDoc.RootElement.GetProperty("data").GetProperty("id").GetGuid();
+
+        // Try to run with a non-existent problem
+        var runRequest = new RunOptimizationRequest(configId, Guid.NewGuid());
+        var response = await _client.PostAsJsonAsync("/api/v1/optimization-runs", runRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Run_EmptyGuids_ReturnsBadRequest()
+    {
+        var runRequest = new RunOptimizationRequest(Guid.Empty, Guid.Empty);
+        var response = await _client.PostAsJsonAsync("/api/v1/optimization-runs", runRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Cancel_NonExistentRun_ReturnsNotFound()
+    {
+        var response = await _client.PostAsync($"/api/v1/optimization-runs/{Guid.NewGuid()}/cancel", null);
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Delete_NonExistentRun_ReturnsNotFound()
+    {
+        var response = await _client.DeleteAsync($"/api/v1/optimization-runs/{Guid.NewGuid()}");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }
