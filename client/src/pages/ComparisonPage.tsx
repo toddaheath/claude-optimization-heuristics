@@ -13,21 +13,23 @@ export function ComparisonPage() {
   const [selectedProblemId, setSelectedProblemId] = useState<string>('');
   const [selectedRunIds, setSelectedRunIds] = useState<Set<string>>(new Set());
 
-  const { data: allRunsResponse } = useQuery({
+  const { data: allRunsResponse, isError: isRunsError } = useQuery({
     queryKey: ['runs', 1, 100],
     queryFn: () => runApi.getAll(1, 100),
   });
   const allRuns = allRunsResponse?.items;
 
-  const { data: configs } = useQuery({
+  const { data: configs, isError: isConfigsError } = useQuery({
     queryKey: ['configs'],
     queryFn: () => configApi.getAll(),
   });
 
-  const { data: problems } = useQuery({
+  const { data: problems, isError: isProblemsError } = useQuery({
     queryKey: ['problems'],
     queryFn: () => problemApi.getAll(),
   });
+
+  const hasQueryError = isRunsError || isConfigsError || isProblemsError;
 
   const configMap = useMemo(
     () => new Map(configs?.map((c: AlgorithmConfiguration) => [c.id, c]) ?? []),
@@ -102,6 +104,12 @@ export function ComparisonPage() {
       {/* Left panel — Run Selection */}
       <div className="w-80 shrink-0 space-y-4">
         <h1 className="text-2xl font-bold">Compare Runs</h1>
+
+        {hasQueryError && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            Failed to load data. Please try again.
+          </div>
+        )}
 
         {/* Problem filter */}
         <div>
@@ -194,7 +202,7 @@ export function ComparisonPage() {
             <div>
               <h3 className="text-sm font-semibold mb-2 text-gray-700">Final Routes</h3>
               <div
-                className={`grid gap-4 ${loadedRuns.length <= 2 ? 'grid-cols-2' : 'grid-cols-2'}`}
+                className="grid gap-4 grid-cols-2"
               >
                 {loadedRuns.map((run, i) => {
                   const cfg = configMap.get(run.algorithmConfigurationId);

@@ -236,9 +236,9 @@ export function ConfigurationPanel() {
 
       <ParameterForm parameters={parameters} onChange={setParameters} />
 
-      {runError && (
+      {(runError || createProblem.isError) && (
         <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-          {runError}
+          {runError ?? 'Failed to create problem. Please try again.'}
         </div>
       )}
 

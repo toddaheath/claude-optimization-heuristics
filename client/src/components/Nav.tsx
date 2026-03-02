@@ -20,6 +20,7 @@ export function Nav() {
       });
     }
     clearAuth();
+    void queryClient.cancelQueries();
     queryClient.clear();
     void navigate('/login');
   }
