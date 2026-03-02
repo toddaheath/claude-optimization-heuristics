@@ -97,6 +97,8 @@ JWT-based auth with access/refresh token flow. Tokens stored in Zustand (persist
 ### Validation
 FluentValidation validators on all request DTOs with user-friendly `WithMessage()` text. Key rules: Name required + max 200 chars, Description max 1000 chars, MaxIterations 1–100,000, AlgorithmType must be valid enum, Parameters dict required, Cities count >= 2 with coordinate bounds.
 
+**Parameter validation:** `AlgorithmParameterRules` (in Core) defines per-algorithm parameter constraints — valid keys, numeric ranges, and cross-parameter rules (e.g., GA `tournamentSize <= populationSize`, PSO `inertiaMin < inertiaMax`). Both Create and Update validators call this. The frontend `ParameterForm` mirrors these constraints with `min`/`max`/`step` attributes and inline range error indicators.
+
 ### Error Handling
 - Backend uses `FluentResults` → `ResultExtensions` maps to appropriate HTTP status codes with `ApiResponse<T>` envelope: `{ success: bool, data?: T, errors: string[] }`
 - Failed optimization runs persist the exception type and message (first 500 chars) to `ErrorMessage` column. Cancelled runs get a dedicated message.
