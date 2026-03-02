@@ -67,7 +67,7 @@ docker-compose up -d                                  # Start PostgreSQL
 - **Zustand store** (`useStore`) tracks: `currentRun`, `iterationHistory`, `currentIteration`, `isPlaying`, `playbackSpeed`, `initialRoute` (random shuffle shown as grey underlay), `isRunning` (true while background optimization is active).
 - **`TspCanvas`** renders routes on HTML5 Canvas. Shows an orange route + "Running…" badge during live execution; blue during replay; green on completion.
 - **`useAnimation`** hook drives post-run playback via `requestAnimationFrame`.
-- **`ConfigurationPanel`** starts a run, then polls `GET /api/v1/optimization-runs/{id}/progress` every 300 ms to update the canvas and convergence chart live. Animation controls are hidden during live execution.
+- **`ConfigurationPanel`** starts a run, then polls `GET /api/v1/optimization-runs/{id}/progress` every 300 ms to update the canvas and convergence chart live. Shows a red "Cancel Run" button during execution. Animation controls are hidden during live execution.
 - **`DocumentationPage`** (`/docs`) provides tab-based reference for all 6 algorithms: how-it-works, when-to-use, and per-parameter definitions with rationale for defaults.
 - **`HistoryPage`** — Details button fetches the full run and shows a modal with initial/optimized distances, improvement %, execution time, parameters, and error info. Uses server-side pagination with `totalCount`.
 - **`ComparisonPage`** — Side-by-side route canvases, metrics table, and convergence overlay for up to 4 selected runs.
@@ -81,7 +81,8 @@ All endpoints under `/api/v1`. Vite dev server proxies `/api` to the backend. Al
 | GET | `/optimization-runs/{id}/progress` | Live iteration history from `RunProgressStore` (falls back to DB when store is cleaned) |
 | GET | `/optimization-runs/{id}` | Full run from DB (use after polling detects completion) |
 | GET | `/optimization-runs?page=1&pageSize=20` | Paginated run list (returns `OptimizationRunSummaryDto` without iterationHistory/bestRoute) |
-| DELETE | `/optimization-runs/{id}` | Delete a run |
+| POST | `/optimization-runs/{id}/cancel` | Cancel a running optimization (triggers CancellationToken) |
+| DELETE | `/optimization-runs/{id}` | Delete a run (also cancels if running) |
 | GET | `/problem-definitions?page=1&pageSize=50` | Paginated problem list |
 | POST | `/problem-definitions` | Create a problem |
 | DELETE | `/problem-definitions/{id}` | Delete (fails if referenced by runs) |
@@ -93,8 +94,12 @@ All endpoints under `/api/v1`. Vite dev server proxies `/api` to the backend. Al
 ### Authentication
 JWT-based auth with access/refresh token flow. Tokens stored in Zustand (persisted to localStorage). Axios interceptor handles 401 → token refresh automatically. Auth endpoints: `/api/v1/auth/register`, `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/revoke`.
 
+### Validation
+FluentValidation validators on all request DTOs with user-friendly `WithMessage()` text. Key rules: Name required + max 200 chars, Description max 1000 chars, MaxIterations 1–100,000, AlgorithmType must be valid enum, Parameters dict required, Cities count >= 2 with coordinate bounds.
+
 ### Error Handling
 - Backend uses `FluentResults` → `ResultExtensions` maps to appropriate HTTP status codes with `ApiResponse<T>` envelope: `{ success: bool, data?: T, errors: string[] }`
+- Failed optimization runs persist the exception type and message (first 500 chars) to `ErrorMessage` column. Cancelled runs get a dedicated message.
 - Frontend Axios interceptor extracts structured error messages from API responses, with descriptive fallbacks per HTTP status code
 - React Query configured with 2 retries + exponential backoff
 - Query/mutation errors displayed inline on all pages
