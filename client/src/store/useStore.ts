@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AuthUser, IterationResult, OptimizationRun } from '../types';
+import type { AlgorithmType, AuthUser, IterationResult, OptimizationRun } from '../types';
 
 interface AppState {
   currentRun: OptimizationRun | null;
@@ -16,6 +16,10 @@ interface AppState {
   // True while the background optimization is running (polling active)
   isRunning: boolean;
   setIsRunning: (running: boolean) => void;
+
+  // Algorithm type of the current/last run (for visualization overlays)
+  currentAlgorithmType: AlgorithmType | null;
+  setCurrentAlgorithmType: (type: AlgorithmType | null) => void;
 
   // Animation state
   iterationHistory: IterationResult[];
@@ -48,6 +52,7 @@ export const useStore = create<AppState>()(
           currentIteration: 0,
           isPlaying: false,
           selectedProblemId: run?.problemDefinitionId ?? state.selectedProblemId,
+          currentAlgorithmType: run ? state.currentAlgorithmType : null,
         })),
 
       selectedProblemId: '',
@@ -58,6 +63,9 @@ export const useStore = create<AppState>()(
 
       isRunning: false,
       setIsRunning: (running) => set({ isRunning: running }),
+
+      currentAlgorithmType: null,
+      setCurrentAlgorithmType: (type) => set({ currentAlgorithmType: type }),
 
       iterationHistory: [],
       currentIteration: 0,

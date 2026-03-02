@@ -56,8 +56,20 @@ public class GeneticAlgorithm : AlgorithmBase
                 bestDistance = fitness[iterBestIdx];
             }
 
+            // Sample routes: best, median, random from current generation
+            var sortedByFitness = fitness.Select((f, idx) => (f, idx)).OrderBy(x => x.f).ToArray();
+            var medianIdx = sortedByFitness[sortedByFitness.Length / 2].idx;
+            var randomIdx = Rng.Next(population.Count);
+            var sampleRoutes = new List<List<int>> {
+                new List<int>(population[iterBestIdx]),
+                new List<int>(population[medianIdx]),
+                new List<int>(population[randomIdx])
+            };
+
             // fitness[iterBestIdx] = best individual in this generation (population's current best)
-            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), fitness[iterBestIdx]));
+            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), fitness[iterBestIdx],
+                new List<int>(population[iterBestIdx]),
+                new Dictionary<string, object> { ["sampleRoutes"] = sampleRoutes }));
         }
 
         return (bestRoute, bestDistance);

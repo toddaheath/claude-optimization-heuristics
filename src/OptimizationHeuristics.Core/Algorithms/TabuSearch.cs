@@ -68,7 +68,9 @@ public class TabuSearch : AlgorithmBase
             }
 
             // currentDistance = the accepted neighbour's distance (may exceed bestDistance)
-            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), currentDistance));
+            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), currentDistance,
+                new List<int>(currentRoute),
+                new Dictionary<string, object> { ["tabuListSize"] = tabuList.Count }));
         }
 
         return (bestRoute, bestDistance);
