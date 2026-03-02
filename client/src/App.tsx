@@ -8,6 +8,7 @@ import { ComparisonPage } from './pages/ComparisonPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ErrorBoundary, RouteErrorFallback } from './components/ErrorBoundary';
 import { Nav } from './components/Nav';
 
 const DocumentationPage = lazy(() =>
@@ -37,17 +38,19 @@ export default function App() {
               <ProtectedRoute>
                 <div className="min-h-screen bg-gray-100">
                   <Nav />
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/history" element={<HistoryPage />} />
-                    <Route path="/compare" element={<ComparisonPage />} />
-                    <Route path="/configurations" element={<ConfigurationsPage />} />
-                    <Route path="/docs" element={
-                      <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading...</div>}>
-                        <DocumentationPage />
-                      </Suspense>
-                    } />
-                  </Routes>
+                  <ErrorBoundary fallback={<RouteErrorFallback />}>
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/history" element={<HistoryPage />} />
+                      <Route path="/compare" element={<ComparisonPage />} />
+                      <Route path="/configurations" element={<ConfigurationsPage />} />
+                      <Route path="/docs" element={
+                        <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading...</div>}>
+                          <DocumentationPage />
+                        </Suspense>
+                      } />
+                    </Routes>
+                  </ErrorBoundary>
                 </div>
               </ProtectedRoute>
             }

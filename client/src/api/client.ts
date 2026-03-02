@@ -47,13 +47,34 @@ function processQueue(error: unknown, token: string | null) {
   failedQueue = [];
 }
 
+function extractErrorMessage(error: AxiosError): string {
+  // Try to extract structured error from our API's ApiResponse envelope
+  const data = error.response?.data as { errors?: string[] } | undefined;
+  if (data?.errors?.length) return data.errors.join(', ');
+
+  // Provide descriptive messages for common HTTP errors
+  switch (error.response?.status) {
+    case 400: return 'Invalid request. Please check your input.';
+    case 403: return 'You do not have permission to perform this action.';
+    case 404: return 'The requested resource was not found.';
+    case 409: return 'This operation conflicts with the current state.';
+    case 422: return 'Validation failed. Please check your input.';
+    case 429: return 'Too many requests. Please wait a moment and try again.';
+    case 500: return 'An internal server error occurred. Please try again later.';
+    case 503: return 'The service is temporarily unavailable. Please try again later.';
+  }
+
+  if (!error.response) return 'Network error. Please check your connection.';
+  return error.message || 'An unexpected error occurred.';
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableRequestConfig | undefined;
 
     if (error.response?.status !== 401 || !originalRequest || originalRequest._retry) {
-      return Promise.reject(new Error(error.message));
+      return Promise.reject(new Error(extractErrorMessage(error)));
     }
 
     if (isRefreshing) {
