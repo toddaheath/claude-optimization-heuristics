@@ -18,6 +18,7 @@ public record OptimizationRunResponse(
     List<IterationResult>? IterationHistory,
     int TotalIterations,
     long ExecutionTimeMs,
+    string? ErrorMessage,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
@@ -30,6 +31,7 @@ public record OptimizationRunSummaryDto(
     double? BestDistance,
     int TotalIterations,
     long ExecutionTimeMs,
+    string? ErrorMessage,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );

@@ -92,8 +92,10 @@ public class OptimizationService : IOptimizationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Optimization run {RunId} failed with {ExceptionType}: {Message}", runId, ex.GetType().Name, ex.Message);
+            var errorMsg = "An error occurred during optimization";
             run.Status = RunStatus.Failed;
-            _progressStore.FailRun(runId, "An error occurred during optimization");
+            run.ErrorMessage = errorMsg;
+            _progressStore.FailRun(runId, errorMsg);
         }
 
         unitOfWork.Repository<OptimizationRun>().Update(run);
@@ -118,7 +120,7 @@ public class OptimizationService : IOptimizationService
             run.IterationHistory ?? [],
             run.BestDistance,
             run.ExecutionTimeMs,
-            null
+            run.ErrorMessage
         ));
     }
 

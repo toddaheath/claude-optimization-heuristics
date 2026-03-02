@@ -14,6 +14,7 @@ public class OptimizationRun
     public List<IterationResult>? IterationHistory { get; set; }
     public int TotalIterations { get; set; }
     public long ExecutionTimeMs { get; set; }
+    public string? ErrorMessage { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
