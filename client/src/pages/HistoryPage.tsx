@@ -157,7 +157,7 @@ export function HistoryPage() {
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const pageSize = 20;
 
-  const { data: runsResponse, isLoading } = useQuery({
+  const { data: runsResponse, isLoading, isError: isQueryError } = useQuery({
     queryKey: ['runs', page],
     queryFn: () => runApi.getAll(page, pageSize),
   });
@@ -207,9 +207,9 @@ export function HistoryPage() {
     <div className="max-w-screen-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Run History</h1>
 
-      {error && (
+      {(error || isQueryError || deleteRun.isError) && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-          {error}
+          {error ?? (isQueryError ? 'Failed to load runs. Please try again.' : 'Failed to delete run.')}
         </div>
       )}
 

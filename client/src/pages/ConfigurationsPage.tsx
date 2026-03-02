@@ -17,7 +17,7 @@ export function ConfigurationsPage() {
   );
   const [maxIterations, setMaxIterations] = useState(500);
 
-  const { data: configs, isLoading } = useQuery({
+  const { data: configs, isLoading, isError: isQueryError } = useQuery({
     queryKey: ['configs'],
     queryFn: configApi.getAll,
   });
@@ -94,6 +94,12 @@ export function ConfigurationsPage() {
 
           <ParameterForm parameters={parameters} onChange={setParameters} />
 
+          {createConfig.isError && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              {createConfig.error instanceof Error ? createConfig.error.message : 'Failed to save configuration.'}
+            </div>
+          )}
+
           <button
             onClick={() =>
               createConfig.mutate({ name, description, algorithmType, parameters, maxIterations })
@@ -107,6 +113,18 @@ export function ConfigurationsPage() {
       )}
 
       {isLoading && <p className="text-gray-500">Loading...</p>}
+
+      {isQueryError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          Failed to load configurations. Please try again.
+        </div>
+      )}
+
+      {deleteConfig.isError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          Failed to delete configuration. It may be referenced by existing runs.
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {configs?.map((config: AlgorithmConfiguration) => (
