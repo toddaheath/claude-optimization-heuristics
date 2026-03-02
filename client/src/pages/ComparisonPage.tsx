@@ -113,8 +113,9 @@ export function ComparisonPage() {
 
         {/* Problem filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Problem</label>
+          <label htmlFor="comparison-problem" className="block text-sm font-medium text-gray-700 mb-1">Problem</label>
           <select
+            id="comparison-problem"
             value={selectedProblemId}
             onChange={(e) => handleProblemChange(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
@@ -129,6 +130,12 @@ export function ComparisonPage() {
               );
             })}
           </select>
+          {!allRuns && !isRunsError && (
+            <p className="mt-2 text-xs text-gray-400">Loading runs...</p>
+          )}
+          {allRuns && problemIds.length === 0 && (
+            <p className="mt-2 text-xs text-gray-500">No completed runs yet. Run some optimizations first.</p>
+          )}
         </div>
 
         {/* Run list */}

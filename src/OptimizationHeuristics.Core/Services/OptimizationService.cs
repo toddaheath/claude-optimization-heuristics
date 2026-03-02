@@ -89,10 +89,19 @@ public class OptimizationService : IOptimizationService
 
             _progressStore.CompleteRun(runId, result.BestDistance, result.ExecutionTimeMs);
         }
+        catch (OperationCanceledException)
+        {
+            var errorMsg = "Optimization run was cancelled";
+            run.Status = RunStatus.Failed;
+            run.ErrorMessage = errorMsg;
+            _progressStore.FailRun(runId, errorMsg);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Optimization run {RunId} failed with {ExceptionType}: {Message}", runId, ex.GetType().Name, ex.Message);
-            var errorMsg = "An error occurred during optimization";
+            var detail = $"{ex.GetType().Name}: {ex.Message}";
+            if (detail.Length > 500) detail = detail[..500];
+            var errorMsg = $"Optimization failed — {detail}";
             run.Status = RunStatus.Failed;
             run.ErrorMessage = errorMsg;
             _progressStore.FailRun(runId, errorMsg);

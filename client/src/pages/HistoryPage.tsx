@@ -73,7 +73,7 @@ function RunDetailsModal({ run, config, onClose }: RunDetailsModalProps) {
       >
         <div className="flex items-center justify-between">
           <h2 id="run-details-title" className="text-lg font-bold">Run Details</h2>
-          <button ref={closeRef} onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+          <button ref={closeRef} onClick={onClose} aria-label="Close run details" className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
         </div>
 
         <div className="divide-y divide-gray-100">
