@@ -245,4 +245,41 @@ public class OptimizationServiceTests
         _progressStore.Received(1).CancelRun(id);
         _runRepo.Received(1).Delete(run);
     }
+
+    [Fact]
+    public async Task CancelAsync_RunningRun_CancelsSuccessfully()
+    {
+        var id = Guid.NewGuid();
+        var run = new OptimizationRun { Id = id, Status = RunStatus.Running };
+        _runRepo.FindOneAsync(Arg.Any<System.Linq.Expressions.Expression<Func<OptimizationRun, bool>>>()).Returns(run);
+
+        var result = await _service.CancelAsync(id, _userId);
+
+        result.IsSuccess.Should().BeTrue();
+        _progressStore.Received(1).CancelRun(id);
+    }
+
+    [Fact]
+    public async Task CancelAsync_CompletedRun_ReturnsFail()
+    {
+        var id = Guid.NewGuid();
+        var run = new OptimizationRun { Id = id, Status = RunStatus.Completed };
+        _runRepo.FindOneAsync(Arg.Any<System.Linq.Expressions.Expression<Func<OptimizationRun, bool>>>()).Returns(run);
+
+        var result = await _service.CancelAsync(id, _userId);
+
+        result.IsFailed.Should().BeTrue();
+        _progressStore.DidNotReceive().CancelRun(id);
+    }
+
+    [Fact]
+    public async Task CancelAsync_NotFound_ReturnsFail()
+    {
+        _runRepo.FindOneAsync(Arg.Any<System.Linq.Expressions.Expression<Func<OptimizationRun, bool>>>())
+            .Returns((OptimizationRun?)null);
+
+        var result = await _service.CancelAsync(Guid.NewGuid(), _userId);
+
+        result.IsFailed.Should().BeTrue();
+    }
 }

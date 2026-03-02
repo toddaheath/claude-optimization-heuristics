@@ -47,6 +47,7 @@ export function ConfigurationPanel() {
   const [maxIterations, setMaxIterations] = useState(500);
   const [cityCount, setCityCount] = useState(20);
   const [isStartingRun, setIsStartingRun] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
 
   const activeRunIdRef = useRef<string | null>(null);
@@ -140,6 +141,19 @@ export function ConfigurationPanel() {
     }
   };
 
+  const cancelRun = async () => {
+    const runId = activeRunIdRef.current;
+    if (!runId) return;
+    setIsCancelling(true);
+    try {
+      await runApi.cancel(runId);
+    } catch {
+      // Cancellation is best-effort; the run may have already finished
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   // ── City generators ──────────────────────────────────────────────────────
 
   const makeProblem = (name: string, description: string, cities: City[]) => {
@@ -171,7 +185,6 @@ export function ConfigurationPanel() {
   };
 
   const isGenerating = createProblem.isPending;
-  const isRunActive = isStartingRun || isRunning;
 
   return (
     <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
@@ -242,13 +255,23 @@ export function ConfigurationPanel() {
         </div>
       )}
 
-      <button
-        onClick={() => void startRun()}
-        disabled={!selectedProblemId || isRunActive}
-        className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-      >
-        {isStartingRun ? 'Starting…' : isRunning ? 'Running…' : 'Run Optimization'}
-      </button>
+      {isRunning ? (
+        <button
+          onClick={() => void cancelRun()}
+          disabled={isCancelling}
+          className="w-full py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
+        >
+          {isCancelling ? 'Cancelling…' : 'Cancel Run'}
+        </button>
+      ) : (
+        <button
+          onClick={() => void startRun()}
+          disabled={!selectedProblemId || isStartingRun}
+          className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+        >
+          {isStartingRun ? 'Starting…' : 'Run Optimization'}
+        </button>
+      )}
     </div>
   );
 }

@@ -10,5 +10,6 @@ public interface IOptimizationService
     Task<Result<RunProgressSnapshot>> GetProgressAsync(Guid runId, Guid userId);
     Task<Result<(List<OptimizationRun> Items, int TotalCount)>> GetAllAsync(Guid userId, int page = 1, int pageSize = 20);
     Task<Result<OptimizationRun>> GetByIdAsync(Guid id, Guid userId);
+    Task<Result> CancelAsync(Guid id, Guid userId);
     Task<Result> DeleteAsync(Guid id, Guid userId);
 }

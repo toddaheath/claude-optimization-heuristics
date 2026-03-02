@@ -55,6 +55,13 @@ public class OptimizationRunsController : ControllerBase
         return result.Map(MapToResponse).ToActionResult();
     }
 
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<ActionResult> Cancel(Guid id)
+    {
+        var result = await _service.CancelAsync(id, _currentUser.UserId);
+        return result.ToActionResult();
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> Delete(Guid id)
     {

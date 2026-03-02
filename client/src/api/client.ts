@@ -167,5 +167,6 @@ export const runApi = {
   getAll: (page = 1, pageSize = 20) =>
     api.get<ApiResponse<PaginatedResponse<OptimizationRun>>>('/optimization-runs', { params: { page, pageSize } }).then(unwrap),
   getById: (id: string) => api.get<ApiResponse<OptimizationRun>>(`/optimization-runs/${id}`).then(unwrap),
+  cancel: (id: string) => api.post(`/optimization-runs/${id}/cancel`),
   delete: (id: string) => api.delete(`/optimization-runs/${id}`),
 };
