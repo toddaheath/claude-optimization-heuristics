@@ -112,7 +112,18 @@ export function ConfigurationsPage() {
         </div>
       )}
 
-      {isLoading && <p className="text-gray-500">Loading...</p>}
+      {isLoading && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="p-4 border rounded-lg bg-white animate-pulse">
+              <div className="h-5 bg-gray-200 rounded w-2/3 mb-2" />
+              <div className="h-4 bg-gray-100 rounded w-1/3 mb-3" />
+              <div className="h-3 bg-gray-100 rounded w-full mb-1" />
+              <div className="h-3 bg-gray-100 rounded w-4/5" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {isQueryError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">

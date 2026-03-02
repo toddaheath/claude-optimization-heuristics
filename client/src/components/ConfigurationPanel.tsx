@@ -208,13 +208,13 @@ export function ConfigurationPanel() {
               className="w-20 px-2 py-1 border rounded text-sm bg-white"
             />
           </div>
-          <div className="grid grid-cols-3 gap-1.5">
-            <button onClick={handleRandomCities}   disabled={isGenerating} className="px-2 py-1.5 bg-green-600   text-white rounded text-xs font-medium hover:bg-green-700   disabled:opacity-50">{isGenerating ? '…' : 'Random'}</button>
-            <button onClick={handleCircleCities}   disabled={isGenerating} className="px-2 py-1.5 bg-purple-600  text-white rounded text-xs font-medium hover:bg-purple-700  disabled:opacity-50">{isGenerating ? '…' : 'Circle'}</button>
-            <button onClick={handleSquareCities}   disabled={isGenerating} className="px-2 py-1.5 bg-teal-600    text-white rounded text-xs font-medium hover:bg-teal-700    disabled:opacity-50">{isGenerating ? '…' : 'Square'}</button>
-            <button onClick={handleTriangleCities} disabled={isGenerating} className="px-2 py-1.5 bg-orange-500  text-white rounded text-xs font-medium hover:bg-orange-600  disabled:opacity-50">{isGenerating ? '…' : 'Triangle'}</button>
-            <button onClick={handlePentagonCities} disabled={isGenerating} className="px-2 py-1.5 bg-pink-600    text-white rounded text-xs font-medium hover:bg-pink-700    disabled:opacity-50">{isGenerating ? '…' : 'Pentagon'}</button>
-            <button onClick={handleHexagonCities}  disabled={isGenerating} className="px-2 py-1.5 bg-indigo-600  text-white rounded text-xs font-medium hover:bg-indigo-700  disabled:opacity-50">{isGenerating ? '…' : 'Hexagon'}</button>
+          <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="City layout generators">
+            <button onClick={handleRandomCities}   disabled={isGenerating} aria-label="Generate random city layout" className="px-2 py-1.5 bg-green-600   text-white rounded text-xs font-medium hover:bg-green-700   disabled:opacity-50">{isGenerating ? '…' : 'Random'}</button>
+            <button onClick={handleCircleCities}   disabled={isGenerating} aria-label="Generate circle city layout" className="px-2 py-1.5 bg-purple-600  text-white rounded text-xs font-medium hover:bg-purple-700  disabled:opacity-50">{isGenerating ? '…' : 'Circle'}</button>
+            <button onClick={handleSquareCities}   disabled={isGenerating} aria-label="Generate square city layout" className="px-2 py-1.5 bg-teal-600    text-white rounded text-xs font-medium hover:bg-teal-700    disabled:opacity-50">{isGenerating ? '…' : 'Square'}</button>
+            <button onClick={handleTriangleCities} disabled={isGenerating} aria-label="Generate triangle city layout" className="px-2 py-1.5 bg-orange-500  text-white rounded text-xs font-medium hover:bg-orange-600  disabled:opacity-50">{isGenerating ? '…' : 'Triangle'}</button>
+            <button onClick={handlePentagonCities} disabled={isGenerating} aria-label="Generate pentagon city layout" className="px-2 py-1.5 bg-pink-600    text-white rounded text-xs font-medium hover:bg-pink-700    disabled:opacity-50">{isGenerating ? '…' : 'Pentagon'}</button>
+            <button onClick={handleHexagonCities}  disabled={isGenerating} aria-label="Generate hexagon city layout" className="px-2 py-1.5 bg-indigo-600  text-white rounded text-xs font-medium hover:bg-indigo-700  disabled:opacity-50">{isGenerating ? '…' : 'Hexagon'}</button>
           </div>
         </div>
       </div>

@@ -210,4 +210,39 @@ public class OptimizationServiceTests
         result.IsSuccess.Should().BeTrue();
         result.Value.RunId.Should().Be(runId);
     }
+
+    [Fact]
+    public async Task GetProgressAsync_FailedRunFromDb_IncludesErrorMessage()
+    {
+        var runId = Guid.NewGuid();
+        var errorMsg = "Optimization failed — InvalidOperationException: test error";
+        var run = new OptimizationRun
+        {
+            Id = runId, UserId = _userId, Status = RunStatus.Failed,
+            ErrorMessage = errorMsg, ExecutionTimeMs = 100
+        };
+        _runRepo.FindOneAsync(Arg.Any<System.Linq.Expressions.Expression<Func<OptimizationRun, bool>>>())
+            .Returns(run);
+        _progressStore.GetSnapshot(runId).Returns((RunProgressSnapshot?)null);
+
+        var result = await _service.GetProgressAsync(runId, _userId);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Status.Should().Be(RunStatus.Failed);
+        result.Value.ErrorMessage.Should().Be(errorMsg);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_RunningRun_CancelsViaProgressStore()
+    {
+        var id = Guid.NewGuid();
+        var run = new OptimizationRun { Id = id, Status = RunStatus.Running };
+        _runRepo.FindOneAsync(Arg.Any<System.Linq.Expressions.Expression<Func<OptimizationRun, bool>>>()).Returns(run);
+
+        var result = await _service.DeleteAsync(id, _userId);
+
+        result.IsSuccess.Should().BeTrue();
+        _progressStore.Received(1).CancelRun(id);
+        _runRepo.Received(1).Delete(run);
+    }
 }
