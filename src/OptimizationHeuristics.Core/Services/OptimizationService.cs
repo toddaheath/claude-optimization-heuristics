@@ -150,6 +150,19 @@ public class OptimizationService : IOptimizationService
         return Result.Ok(run);
     }
 
+    public async Task<Result> CancelAsync(Guid id, Guid userId)
+    {
+        var run = await _unitOfWork.Repository<OptimizationRun>().FindOneAsync(x => x.Id == id && x.UserId == userId);
+        if (run is null)
+            return Result.Fail(new NotFoundError("Optimization run not found"));
+
+        if (run.Status != RunStatus.Running)
+            return Result.Fail("Run is not currently running");
+
+        _progressStore.CancelRun(id);
+        return Result.Ok();
+    }
+
     public async Task<Result> DeleteAsync(Guid id, Guid userId)
     {
         var run = await _unitOfWork.Repository<OptimizationRun>().FindOneAsync(x => x.Id == id && x.UserId == userId);
