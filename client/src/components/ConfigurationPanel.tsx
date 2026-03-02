@@ -38,6 +38,7 @@ export function ConfigurationPanel() {
     setIsRunning,
     setIterationHistory,
     setCurrentIteration,
+    setCurrentAlgorithmType,
   } = useStore();
 
   const [algorithmType, setAlgorithmType] = useState<AlgorithmType>(AlgorithmType.SimulatedAnnealing);
@@ -131,6 +132,7 @@ export function ConfigurationPanel() {
 
       setCurrentRun(run);
       setIsRunning(true);
+      setCurrentAlgorithmType(algorithmType);
       activeRunIdRef.current = run.id;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start optimization run';

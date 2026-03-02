@@ -16,6 +16,7 @@ export function HomePage() {
     selectedProblemId,
     initialRoute,
     isRunning,
+    currentAlgorithmType,
   } = useStore();
   const { currentFrame, totalFrames } = useAnimation();
 
@@ -103,6 +104,7 @@ export function HomePage() {
           initialRoute={initialRoute.length === cities.length ? initialRoute : undefined}
           isComplete={isComplete}
           isRunning={isRunning}
+          algorithmType={currentAlgorithmType ?? undefined}
           width={700}
           height={500}
         />
