@@ -72,6 +72,11 @@ export interface ApiResponse<T> {
   errors: string[];
 }
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  totalCount: number;
+}
+
 export interface RunProgressResponse {
   runId: string;
   status: RunStatus;
