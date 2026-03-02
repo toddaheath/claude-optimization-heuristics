@@ -10,50 +10,56 @@ export function generateRandomCities(count: number): City[] {
 
 export function generateCircleCities(count: number): City[] {
   const cx = 250, cy = 200, radius = 180;
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    x: Math.round(cx + radius * Math.cos((2 * Math.PI * i) / count)),
-    y: Math.round(cy + radius * Math.sin((2 * Math.PI * i) / count)),
-  }));
+  return Array.from({ length: count }, (_, i) => {
+    const angle = Math.random() * 2 * Math.PI;
+    const r = Math.sqrt(Math.random()) * radius;
+    return {
+      id: i,
+      x: Math.round(cx + r * Math.cos(angle)),
+      y: Math.round(cy + r * Math.sin(angle)),
+    };
+  });
 }
 
 export function generateSquareCities(count: number): City[] {
   const margin = 40;
   const w = 420, h = 320;
-  const perimeter = 2 * (w + h);
-  return Array.from({ length: count }, (_, i) => {
-    const d = (i / count) * perimeter;
-    let x: number, y: number;
-    if (d < w) {
-      x = margin + d;               y = margin;
-    } else if (d < w + h) {
-      x = margin + w;               y = margin + (d - w);
-    } else if (d < 2 * w + h) {
-      x = margin + w - (d - w - h); y = margin + h;
-    } else {
-      x = margin;                   y = margin + h - (d - 2 * w - h);
-    }
-    return { id: i, x: Math.round(x), y: Math.round(y) };
-  });
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    x: Math.round(Math.random() * w + margin),
+    y: Math.round(Math.random() * h + margin),
+  }));
 }
 
 export function generateTriangleCities(count: number): City[] {
   const cx = 250, cy = 200, side = 340;
   const th = (Math.sqrt(3) / 2) * side;
-  const vertices = [
-    { x: cx,             y: cy - (th * 2) / 3 },
-    { x: cx - side / 2,  y: cy + th / 3 },
-    { x: cx + side / 2,  y: cy + th / 3 },
-  ];
-  const perimeter = side * 3;
+  const v0 = { x: cx,            y: cy - (th * 2) / 3 };
+  const v1 = { x: cx - side / 2, y: cy + th / 3 };
+  const v2 = { x: cx + side / 2, y: cy + th / 3 };
   return Array.from({ length: count }, (_, i) => {
-    const d = (i / count) * perimeter;
-    const sideIdx = Math.min(Math.floor(d / side), 2);
-    const t = (d - sideIdx * side) / side;
-    const from = vertices[sideIdx];
-    const to = vertices[(sideIdx + 1) % 3];
-    return { id: i, x: Math.round(from.x + t * (to.x - from.x)), y: Math.round(from.y + t * (to.y - from.y)) };
+    let r1 = Math.random();
+    let r2 = Math.random();
+    if (r1 + r2 > 1) {
+      r1 = 1 - r1;
+      r2 = 1 - r2;
+    }
+    const x = (1 - r1 - r2) * v0.x + r1 * v1.x + r2 * v2.x;
+    const y = (1 - r1 - r2) * v0.y + r1 * v1.y + r2 * v2.y;
+    return { id: i, x: Math.round(x), y: Math.round(y) };
   });
+}
+
+function isInsidePolygon(x: number, y: number, vertices: {x: number, y: number}[]): boolean {
+  let inside = false;
+  for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+    const xi = vertices[i].x, yi = vertices[i].y;
+    const xj = vertices[j].x, yj = vertices[j].y;
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) {
+      inside = !inside;
+    }
+  }
+  return inside;
 }
 
 export function generatePentagonCities(count: number): City[] {
@@ -63,16 +69,21 @@ export function generatePentagonCities(count: number): City[] {
     x: cx + radius * Math.cos((2 * Math.PI * k) / sides - Math.PI / 2),
     y: cy + radius * Math.sin((2 * Math.PI * k) / sides - Math.PI / 2),
   }));
-  const perimeter = sides * 2 * radius * Math.sin(Math.PI / sides);
-  const sideLen = perimeter / sides;
-  return Array.from({ length: count }, (_, i) => {
-    const d = (i / count) * perimeter;
-    const sideIdx = Math.min(Math.floor(d / sideLen), sides - 1);
-    const t = (d - sideIdx * sideLen) / sideLen;
-    const from = vertices[sideIdx];
-    const to = vertices[(sideIdx + 1) % sides];
-    return { id: i, x: Math.round(from.x + t * (to.x - from.x)), y: Math.round(from.y + t * (to.y - from.y)) };
-  });
+
+  const minX = Math.min(...vertices.map(v => v.x));
+  const maxX = Math.max(...vertices.map(v => v.x));
+  const minY = Math.min(...vertices.map(v => v.y));
+  const maxY = Math.max(...vertices.map(v => v.y));
+
+  const cities: City[] = [];
+  while (cities.length < count) {
+    const x = Math.random() * (maxX - minX) + minX;
+    const y = Math.random() * (maxY - minY) + minY;
+    if (isInsidePolygon(x, y, vertices)) {
+      cities.push({ id: cities.length, x: Math.round(x), y: Math.round(y) });
+    }
+  }
+  return cities;
 }
 
 export function generateHexagonCities(count: number): City[] {
@@ -82,14 +93,19 @@ export function generateHexagonCities(count: number): City[] {
     x: cx + radius * Math.cos((2 * Math.PI * k) / sides),
     y: cy + radius * Math.sin((2 * Math.PI * k) / sides),
   }));
-  const sideLen = radius; // for regular hexagon, side = radius
-  const perimeter = sides * sideLen;
-  return Array.from({ length: count }, (_, i) => {
-    const d = (i / count) * perimeter;
-    const sideIdx = Math.min(Math.floor(d / sideLen), sides - 1);
-    const t = (d - sideIdx * sideLen) / sideLen;
-    const from = vertices[sideIdx];
-    const to = vertices[(sideIdx + 1) % sides];
-    return { id: i, x: Math.round(from.x + t * (to.x - from.x)), y: Math.round(from.y + t * (to.y - from.y)) };
-  });
+
+  const minX = Math.min(...vertices.map(v => v.x));
+  const maxX = Math.max(...vertices.map(v => v.x));
+  const minY = Math.min(...vertices.map(v => v.y));
+  const maxY = Math.max(...vertices.map(v => v.y));
+
+  const cities: City[] = [];
+  while (cities.length < count) {
+    const x = Math.random() * (maxX - minX) + minX;
+    const y = Math.random() * (maxY - minY) + minY;
+    if (isInsidePolygon(x, y, vertices)) {
+      cities.push({ id: cities.length, x: Math.round(x), y: Math.round(y) });
+    }
+  }
+  return cities;
 }
