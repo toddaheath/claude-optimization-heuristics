@@ -65,4 +65,70 @@ public class AlgorithmConfigurationValidatorTests
         var result = _updateValidator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.MaxIterations);
     }
+
+    [Fact]
+    public void Create_Name_TooLong_Fails()
+    {
+        var request = new CreateAlgorithmConfigurationRequest(
+            new string('x', 201), null, AlgorithmType.SimulatedAnnealing,
+            new Dictionary<string, object>(), 100);
+
+        var result = _createValidator.TestValidate(request);
+        result.ShouldHaveValidationErrorFor(x => x.Name);
+    }
+
+    [Fact]
+    public void Create_Description_TooLong_Fails()
+    {
+        var request = new CreateAlgorithmConfigurationRequest(
+            "Test", new string('x', 1001), AlgorithmType.SimulatedAnnealing,
+            new Dictionary<string, object>(), 100);
+
+        var result = _createValidator.TestValidate(request);
+        result.ShouldHaveValidationErrorFor(x => x.Description);
+    }
+
+    [Fact]
+    public void Create_NegativeIterations_Fails()
+    {
+        var request = new CreateAlgorithmConfigurationRequest(
+            "Test", null, AlgorithmType.SimulatedAnnealing,
+            new Dictionary<string, object>(), -1);
+
+        var result = _createValidator.TestValidate(request);
+        result.ShouldHaveValidationErrorFor(x => x.MaxIterations);
+    }
+
+    [Fact]
+    public void Create_BoundaryIterations_100000_Passes()
+    {
+        var request = new CreateAlgorithmConfigurationRequest(
+            "Test", null, AlgorithmType.SimulatedAnnealing,
+            new Dictionary<string, object>(), 100000);
+
+        var result = _createValidator.TestValidate(request);
+        result.ShouldNotHaveValidationErrorFor(x => x.MaxIterations);
+    }
+
+    [Fact]
+    public void Update_Empty_Name_Fails()
+    {
+        var request = new UpdateAlgorithmConfigurationRequest(
+            "", null, AlgorithmType.SimulatedAnnealing,
+            new Dictionary<string, object>(), 100);
+
+        var result = _updateValidator.TestValidate(request);
+        result.ShouldHaveValidationErrorFor(x => x.Name);
+    }
+
+    [Fact]
+    public void Update_Description_TooLong_Fails()
+    {
+        var request = new UpdateAlgorithmConfigurationRequest(
+            "Test", new string('x', 1001), AlgorithmType.SimulatedAnnealing,
+            new Dictionary<string, object>(), 100);
+
+        var result = _updateValidator.TestValidate(request);
+        result.ShouldHaveValidationErrorFor(x => x.Description);
+    }
 }

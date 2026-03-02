@@ -7,7 +7,10 @@ public class CreateProblemDefinitionValidator : AbstractValidator<CreateProblemD
 {
     public CreateProblemDefinitionValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(200)
+            .WithMessage("Name is required and must be at most 200 characters.");
+        RuleFor(x => x.Description).MaximumLength(1000)
+            .WithMessage("Description must be at most 1000 characters.");
         RuleFor(x => x.Cities).NotEmpty().WithMessage("At least one city is required");
         RuleFor(x => x.Cities.Count).GreaterThanOrEqualTo(2).WithMessage("At least 2 cities are required");
         RuleForEach(x => x.Cities).ChildRules(city =>
