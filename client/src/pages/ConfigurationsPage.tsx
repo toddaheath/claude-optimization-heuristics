@@ -16,6 +16,7 @@ export function ConfigurationsPage() {
     DEFAULT_PARAMETERS[AlgorithmType.SimulatedAnnealing],
   );
   const [maxIterations, setMaxIterations] = useState(500);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
 
   const { data: configs, isLoading, isError: isQueryError } = useQuery({
     queryKey: ['configs'],
@@ -86,6 +87,7 @@ export function ConfigurationsPage() {
               id="config-max-iterations"
               type="number"
               min={1}
+              max={100000}
               value={maxIterations}
               onChange={(e) => setMaxIterations(Number(e.target.value))}
               className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
@@ -145,12 +147,21 @@ export function ConfigurationsPage() {
                 <h3 className="font-semibold">{config.name}</h3>
                 <p className="text-sm text-gray-500">{ALGORITHM_LABELS[config.algorithmType]}</p>
               </div>
-              <button
-                onClick={() => deleteConfig.mutate(config.id)}
-                className="text-red-500 hover:text-red-700 text-sm"
-              >
-                Delete
-              </button>
+              {confirmingDeleteId === config.id ? (
+                <button
+                  onClick={() => { deleteConfig.mutate(config.id); setConfirmingDeleteId(null); }}
+                  className="text-red-700 font-semibold hover:underline text-sm"
+                >
+                  Confirm?
+                </button>
+              ) : (
+                <button
+                  onClick={() => setConfirmingDeleteId(config.id)}
+                  className="text-red-500 hover:text-red-700 text-sm"
+                >
+                  Delete
+                </button>
+              )}
             </div>
             {config.description && <p className="text-sm text-gray-600 mt-1">{config.description}</p>}
             <div className="mt-2 text-xs text-gray-500">
