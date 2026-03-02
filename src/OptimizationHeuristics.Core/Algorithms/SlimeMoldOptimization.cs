@@ -100,8 +100,18 @@ public class SlimeMoldOptimization : AlgorithmBase
                 bestDistance = fitness[iterBestIdx];
             }
 
+            // Sample 3 routes for visualization
+            var sampleIndices = new[] {
+                sortedIndices[0],  // best
+                sortedIndices[populationSize / 2],  // median
+                sortedIndices[Rng.Next(populationSize)]  // random
+            };
+            var sampleRoutes = sampleIndices.Select(idx => new List<int>(population[idx])).ToList();
+
             // fitness[iterBestIdx] = best individual in the population this iteration
-            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), fitness[iterBestIdx]));
+            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), fitness[iterBestIdx],
+                new List<int>(population[iterBestIdx]),
+                new Dictionary<string, object> { ["sampleRoutes"] = sampleRoutes }));
         }
 
         return (bestRoute, bestDistance);

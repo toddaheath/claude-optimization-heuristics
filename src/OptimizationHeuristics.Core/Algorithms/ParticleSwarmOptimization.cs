@@ -39,6 +39,7 @@ public class ParticleSwarmOptimization : AlgorithmBase
             double w = inertiaMax - (inertiaMax - inertiaMin) * iteration / maxIterations;
 
             var iterationBestDistance = double.MaxValue;
+            var iterationBestIdx = 0;
             for (var i = 0; i < swarmSize; i++)
             {
                 // Compute swap sequences toward personal and global best
@@ -73,7 +74,10 @@ public class ParticleSwarmOptimization : AlgorithmBase
 
                 var distance = Route.CalculateTotalDistance(particles[i], cities);
                 if (distance < iterationBestDistance)
+                {
                     iterationBestDistance = distance;
+                    iterationBestIdx = i;
+                }
 
                 if (distance < personalBestDistance[i])
                 {
@@ -88,8 +92,14 @@ public class ParticleSwarmOptimization : AlgorithmBase
                 }
             }
 
+            // Sample 3 particle routes for visualization
+            var sampleIndices = new[] { 0, swarmSize / 2, Rng.Next(swarmSize) };
+            var particleRoutes = sampleIndices.Select(idx => new List<int>(particles[idx])).ToList();
+
             // iterationBestDistance = best particle distance found this iteration (noisy)
-            history.Add(new IterationResult(iteration, globalBestDistance, new List<int>(globalBest), iterationBestDistance));
+            history.Add(new IterationResult(iteration, globalBestDistance, new List<int>(globalBest), iterationBestDistance,
+                new List<int>(particles[iterationBestIdx]),
+                new Dictionary<string, object> { ["particleRoutes"] = particleRoutes, ["inertiaWeight"] = w }));
         }
 
         return (globalBest, globalBestDistance);

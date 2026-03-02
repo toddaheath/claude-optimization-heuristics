@@ -42,6 +42,29 @@ public class AntColonyOptimization : AlgorithmBase
             EvaporatePheromones(pheromones, n, evaporationRate);
             DepositPheromones(pheromones, iterationBestRoute, iterationBestDistance, pheromoneDeposit);
 
+            // Extract top pheromone edges for visualization
+            var maxPheromone = 0.0;
+            for (var pi = 0; pi < n; pi++)
+                for (var pj = pi + 1; pj < n; pj++)
+                    if (pheromones[pi, pj] > maxPheromone)
+                        maxPheromone = pheromones[pi, pj];
+
+            var topEdges = new List<double[]>();
+            if (maxPheromone > 0)
+            {
+                var edgeLimit = 3 * n;
+                var candidates = new List<(int from, int to, double strength)>();
+                for (var pi = 0; pi < n; pi++)
+                    for (var pj = pi + 1; pj < n; pj++)
+                    {
+                        var normalized = pheromones[pi, pj] / maxPheromone;
+                        if (normalized > 0.1)
+                            candidates.Add((pi, pj, normalized));
+                    }
+                foreach (var edge in candidates.OrderByDescending(e => e.strength).Take(edgeLimit))
+                    topEdges.Add(new double[] { edge.from, edge.to, edge.strength });
+            }
+
             if (iterationBestDistance < bestDistance)
             {
                 bestRoute = new List<int>(iterationBestRoute);
@@ -49,7 +72,9 @@ public class AntColonyOptimization : AlgorithmBase
             }
 
             // iterationBestDistance = best ant found this iteration (noisy; can be > bestDistance)
-            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), iterationBestDistance));
+            history.Add(new IterationResult(iteration, bestDistance, new List<int>(bestRoute), iterationBestDistance,
+                new List<int>(iterationBestRoute),
+                new Dictionary<string, object> { ["pheromoneEdges"] = topEdges }));
         }
 
         return (bestRoute, bestDistance);
