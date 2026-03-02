@@ -125,4 +125,43 @@ public class AlgorithmConfigurationIntegrationTests : IClassFixture<CustomWebApp
         var response = await unauthClient.GetAsync("/api/v1/algorithm-configurations");
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task Create_InvalidParameter_ReturnsBadRequest()
+    {
+        var request = new CreateAlgorithmConfigurationRequest(
+            "Bad Params", null, AlgorithmType.SimulatedAnnealing,
+            new Dictionary<string, object> { { "coolingRate", 5.0 } }, 100);
+
+        var response = await _client.PostAsJsonAsync("/api/v1/algorithm-configurations", request);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Create_UnknownParameter_ReturnsBadRequest()
+    {
+        var request = new CreateAlgorithmConfigurationRequest(
+            "Unknown Param", null, AlgorithmType.SimulatedAnnealing,
+            new Dictionary<string, object> { { "bogusParam", 42.0 } }, 100);
+
+        var response = await _client.PostAsJsonAsync("/api/v1/algorithm-configurations", request);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Create_GA_CrossParameterViolation_ReturnsBadRequest()
+    {
+        var request = new CreateAlgorithmConfigurationRequest(
+            "Bad GA", null, AlgorithmType.GeneticAlgorithm,
+            new Dictionary<string, object>
+            {
+                { "populationSize", 10.0 },
+                { "tournamentSize", 20.0 },
+                { "mutationRate", 0.02 },
+                { "eliteCount", 2.0 }
+            }, 100);
+
+        var response = await _client.PostAsJsonAsync("/api/v1/algorithm-configurations", request);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
 }
