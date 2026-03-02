@@ -135,6 +135,7 @@ public class ApplicationDbContext : DbContext
                         c => c != null ? JsonSerializer.Deserialize<List<IterationResult>>(JsonSerializer.Serialize(c, JsonOptions), JsonOptions) : null));
             entity.Property(e => e.TotalIterations);
             entity.Property(e => e.ExecutionTimeMs);
+            entity.Property(e => e.ErrorMessage).HasMaxLength(2000);
             entity.Property(e => e.CreatedAt);
             entity.Property(e => e.UpdatedAt);
 

@@ -65,9 +65,10 @@ public class OptimizationRunsController : ControllerBase
     private static OptimizationRunResponse MapToResponse(OptimizationRun r) =>
         new(r.Id, r.AlgorithmConfigurationId, r.ProblemDefinitionId, r.Status,
             r.BestDistance, r.BestRoute, r.IterationHistory, r.TotalIterations,
-            r.ExecutionTimeMs, r.CreatedAt, r.UpdatedAt);
+            r.ExecutionTimeMs, r.ErrorMessage, r.CreatedAt, r.UpdatedAt);
 
     private static OptimizationRunSummaryDto MapToSummary(OptimizationRun r) =>
         new(r.Id, r.AlgorithmConfigurationId, r.ProblemDefinitionId, r.Status,
-            r.BestDistance, r.TotalIterations, r.ExecutionTimeMs, r.CreatedAt, r.UpdatedAt);
+            r.BestDistance, r.TotalIterations, r.ExecutionTimeMs, r.ErrorMessage,
+            r.CreatedAt, r.UpdatedAt);
 }
