@@ -220,7 +220,7 @@ export function ComparisonPage() {
                         ? { iteration: 0, bestDistance: run.bestDistance!, bestRoute: run.bestRoute, currentDistance: run.bestDistance! }
                         : null;
                   return (
-                    <div key={run.id} className="space-y-1">
+                    <div key={run.id} className="space-y-1" role="img" aria-label={`Final route for ${cfg ? ALGORITHM_LABELS[cfg.algorithmType] : `Run ${i + 1}`}, distance ${run.bestDistance?.toFixed(2) ?? 'unknown'}`}>
                       <p className="text-xs font-medium text-gray-700 truncate">
                         {cfg ? ALGORITHM_LABELS[cfg.algorithmType] : `Run ${i + 1}`}
                         {' — '}
