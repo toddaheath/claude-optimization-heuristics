@@ -118,6 +118,8 @@ export const DEFAULT_PARAMETERS: Record<AlgorithmType, Record<string, number>> =
     swarmSize: 30,
     cognitiveWeight: 2.0,
     socialWeight: 2.0,
+    inertiaMax: 0.9,
+    inertiaMin: 0.4,
   },
   [AlgorithmType.SlimeMoldOptimization]: {
     populationSize: 30,
