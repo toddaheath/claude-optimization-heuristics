@@ -165,23 +165,23 @@ export function ConfigurationPanel() {
   };
 
   const handleCircleCities = () => {
-    makeProblem(`Circle ${cityCount} cities`, `${cityCount} cities arranged on a circle`, generateCircleCities(cityCount));
+    makeProblem(`Circle ${cityCount} cities`, `${cityCount} cities scattered inside a circle`, generateCircleCities(cityCount));
   };
 
   const handleSquareCities = () => {
-    makeProblem(`Square ${cityCount} cities`, `${cityCount} cities arranged on a square`, generateSquareCities(cityCount));
+    makeProblem(`Square ${cityCount} cities`, `${cityCount} cities scattered inside a square`, generateSquareCities(cityCount));
   };
 
   const handleTriangleCities = () => {
-    makeProblem(`Triangle ${cityCount} cities`, `${cityCount} cities arranged on a triangle`, generateTriangleCities(cityCount));
+    makeProblem(`Triangle ${cityCount} cities`, `${cityCount} cities scattered inside a triangle`, generateTriangleCities(cityCount));
   };
 
   const handlePentagonCities = () => {
-    makeProblem(`Pentagon ${cityCount} cities`, `${cityCount} cities arranged on a pentagon`, generatePentagonCities(cityCount));
+    makeProblem(`Pentagon ${cityCount} cities`, `${cityCount} cities scattered inside a pentagon`, generatePentagonCities(cityCount));
   };
 
   const handleHexagonCities = () => {
-    makeProblem(`Hexagon ${cityCount} cities`, `${cityCount} cities arranged on a hexagon`, generateHexagonCities(cityCount));
+    makeProblem(`Hexagon ${cityCount} cities`, `${cityCount} cities scattered inside a hexagon`, generateHexagonCities(cityCount));
   };
 
   const isGenerating = createProblem.isPending;
