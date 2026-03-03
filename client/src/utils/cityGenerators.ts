@@ -27,7 +27,7 @@ export function generateSquareCities(count: number): City[] {
   const step = perimeter / count;
 
   return Array.from({ length: count }, (_, i) => {
-    let d = step * i;
+    const d = step * i;
     let x: number, y: number;
     if (d < w) {
       x = margin + d;
