@@ -434,6 +434,39 @@ export function DocumentationPage() {
         <ActiveDoc />
       </div>
 
+      {/* Environment URLs */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Environments</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="py-2 pr-4 font-semibold text-gray-700">Environment</th>
+                <th className="py-2 pr-4 font-semibold text-gray-700">SPA (Frontend)</th>
+                <th className="py-2 font-semibold text-gray-700">API (Backend)</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-600">
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pr-4 font-medium text-gray-800">Local</td>
+                <td className="py-2 pr-4"><code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">http://localhost:5173</code></td>
+                <td className="py-2"><code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">http://localhost:5211</code></td>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <td className="py-2 pr-4 font-medium text-gray-800">Dev</td>
+                <td className="py-2 pr-4"><code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">https://opt-sim.dev.heathrobotics.io</code></td>
+                <td className="py-2"><code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">https://opt-sim-api.dev.heathrobotics.io</code></td>
+              </tr>
+              <tr>
+                <td className="py-2 pr-4 font-medium text-gray-800">Prod</td>
+                <td className="py-2 pr-4"><code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">https://opt-sim.heathrobotics.io</code></td>
+                <td className="py-2"><code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">https://opt-sim-api.heathrobotics.io</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* General TSP note */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
         <p className="font-semibold mb-1">About the Traveling Salesman Problem (TSP)</p>

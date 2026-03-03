@@ -14,6 +14,7 @@ import {
   generatePentagonCities,
   generateHexagonCities,
 } from '../utils/cityGenerators';
+import { getSuggestedParameters } from '../utils/suggestedParameters';
 
 /** Fisher-Yates shuffle of indices 0..n-1 */
 function randomRoute(n: number): number[] {
@@ -167,23 +168,23 @@ export function ConfigurationPanel() {
   };
 
   const handleCircleCities = () => {
-    makeProblem(`Circle ${cityCount} cities`, `${cityCount} cities scattered inside a circle`, generateCircleCities(cityCount));
+    makeProblem(`Circle ${cityCount} cities`, `${cityCount} cities arranged on a circle`, generateCircleCities(cityCount));
   };
 
   const handleSquareCities = () => {
-    makeProblem(`Square ${cityCount} cities`, `${cityCount} cities scattered inside a square`, generateSquareCities(cityCount));
+    makeProblem(`Square ${cityCount} cities`, `${cityCount} cities arranged on a square`, generateSquareCities(cityCount));
   };
 
   const handleTriangleCities = () => {
-    makeProblem(`Triangle ${cityCount} cities`, `${cityCount} cities scattered inside a triangle`, generateTriangleCities(cityCount));
+    makeProblem(`Triangle ${cityCount} cities`, `${cityCount} cities arranged on a triangle`, generateTriangleCities(cityCount));
   };
 
   const handlePentagonCities = () => {
-    makeProblem(`Pentagon ${cityCount} cities`, `${cityCount} cities scattered inside a pentagon`, generatePentagonCities(cityCount));
+    makeProblem(`Pentagon ${cityCount} cities`, `${cityCount} cities arranged on a pentagon`, generatePentagonCities(cityCount));
   };
 
   const handleHexagonCities = () => {
-    makeProblem(`Hexagon ${cityCount} cities`, `${cityCount} cities scattered inside a hexagon`, generateHexagonCities(cityCount));
+    makeProblem(`Hexagon ${cityCount} cities`, `${cityCount} cities arranged on a hexagon`, generateHexagonCities(cityCount));
   };
 
   const isGenerating = createProblem.isPending;
@@ -250,6 +251,18 @@ export function ConfigurationPanel() {
       </div>
 
       <ParameterForm parameters={parameters} onChange={setParameters} />
+
+      <button
+        type="button"
+        onClick={() => {
+          const suggested = getSuggestedParameters(algorithmType, cityCount);
+          setParameters(suggested.parameters);
+          setMaxIterations(suggested.maxIterations);
+        }}
+        className="w-full py-1.5 border border-blue-300 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors"
+      >
+        Suggest Parameters for {cityCount} Cities
+      </button>
 
       {(runError || createProblem.isError) && (
         <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">

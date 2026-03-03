@@ -108,4 +108,4 @@ FluentValidation validators on all request DTOs with user-friendly `WithMessage(
 - Route-level `ErrorBoundary` wraps page content (nav stays visible on crash)
 
 ### City Layout Generators
-6 shapes available in the UI — Random, Circle, Square, Triangle, Pentagon, Hexagon. All use vertex-based perimeter distribution. When a problem is created the frontend also stores a Fisher-Yates shuffle of city indices as `initialRoute`, shown as the grey dashed underlay before/during optimization.
+6 shapes available in the UI — Random, Circle, Square, Triangle, Pentagon, Hexagon. All except Random place cities evenly on the shape perimeter (circle circumference, polygon edges). When a problem is created the frontend also stores a Fisher-Yates shuffle of city indices as `initialRoute`, shown as the grey dashed underlay before/during optimization. The optimizer's goal is to converge from the random connection order to the clean perimeter path.
